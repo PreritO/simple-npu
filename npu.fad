@@ -191,7 +191,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Splitter splitter;
   Parser parser("Parser.cfg");
   Scheduler scheduler("Scheduler.cfg");
-  Cluster cluster("Cluster.cfg")[2];
+  Cluster cluster("Cluster.cfg")[8];
   ReorderController roc;
   TrafficManager tm("TrafficManager.cfg");
   Deparser deparser;
@@ -239,11 +239,11 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0],ocn20_rd_channel[1],ocn20_rd_channel[2]};
   bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0],ocn20_wr_channel[1],ocn20_wr_channel[2]};
 
-  //bind cluster[6].ocn_wr_if         {ocn20_rd_channel[0]};
-  //bind cluster[6].ocn_rd_if         {ocn20_wr_channel[0]};
+  bind cluster[6].ocn_wr_if         {ocn20_rd_channel[0]};
+  bind cluster[6].ocn_rd_if         {ocn20_wr_channel[0]};
 
-  //bind cluster[4].ocn_wr_if         {ocn20_rd_channel[1]};
-  //bind cluster[4].ocn_rd_if         {ocn20_wr_channel[1]};
+  bind cluster[4].ocn_wr_if         {ocn20_rd_channel[1]};
+  bind cluster[4].ocn_rd_if         {ocn20_wr_channel[1]};
 
   // --- ocn_01 ---
   Queue ocn01_rd_channel[4];
@@ -308,11 +308,11 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind ocn_12.ocn_rd_if             {ocn02_wr_channel[3],ocn11_wr_channel[2],ocn12_rd_channel[0],ocn12_rd_channel[1],ocn12_rd_channel[2]};
   bind ocn_12.ocn_wr_if             {ocn02_rd_channel[3],ocn11_rd_channel[2],ocn12_wr_channel[0],ocn12_wr_channel[1],ocn12_wr_channel[2]};
 
-  //bind cluster[2].ocn_wr_if         {ocn12_rd_channel[0]};
-  //bind cluster[2].ocn_rd_if         {ocn12_wr_channel[0]};
+  bind cluster[2].ocn_wr_if         {ocn12_rd_channel[0]};
+  bind cluster[2].ocn_rd_if         {ocn12_wr_channel[0]};
 
-  //bind cluster[3].ocn_wr_if         {ocn12_rd_channel[1]};
-  //bind cluster[3].ocn_rd_if         {ocn12_wr_channel[1]};
+  bind cluster[3].ocn_wr_if         {ocn12_rd_channel[1]};
+  bind cluster[3].ocn_rd_if         {ocn12_wr_channel[1]};
 
   //  --- ocn_22 ---
   Queue ocn22_rd_channel[2];
@@ -321,11 +321,11 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind ocn_22.ocn_rd_if             {ocn12_wr_channel[2],ocn21_wr_channel[2],ocn22_rd_channel[0],ocn22_rd_channel[1]};
   bind ocn_22.ocn_wr_if             {ocn12_rd_channel[2],ocn21_rd_channel[2],ocn22_wr_channel[0],ocn22_wr_channel[1]};
 
-  //bind cluster[5].ocn_wr_if         {ocn22_rd_channel[0]};
-  //bind cluster[5].ocn_rd_if         {ocn22_wr_channel[0]};
+  bind cluster[5].ocn_wr_if         {ocn22_rd_channel[0]};
+  bind cluster[5].ocn_rd_if         {ocn22_wr_channel[0]};
 
-  //bind cluster[7].ocn_wr_if         {ocn22_rd_channel[1]};
-  //bind cluster[7].ocn_rd_if         {ocn22_wr_channel[1]};
+  bind cluster[7].ocn_wr_if         {ocn22_rd_channel[1]};
+  bind cluster[7].ocn_rd_if         {ocn22_wr_channel[1]};
 
   bind splitter.ingress             {ingress};
   bind deparser.egress              {egress};
