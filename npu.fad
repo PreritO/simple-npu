@@ -191,7 +191,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Splitter splitter;
   Parser parser("Parser.cfg");
   Scheduler scheduler("Scheduler.cfg");
-  Cluster cluster("Cluster.cfg")[1];
+  Cluster cluster("Cluster.cfg")[2];
   ReorderController roc;
   TrafficManager tm("TrafficManager.cfg");
   Deparser deparser;
@@ -281,8 +281,8 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind cluster[0].ocn_wr_if         {ocn21_rd_channel[0]};
   bind cluster[0].ocn_rd_if         {ocn21_wr_channel[0]};
 
-  //bind cluster[1].ocn_wr_if         {ocn21_rd_channel[1]};
-  //bind cluster[1].ocn_rd_if         {ocn21_wr_channel[1]};
+  bind cluster[1].ocn_wr_if         {ocn21_rd_channel[1]};
+  bind cluster[1].ocn_rd_if         {ocn21_wr_channel[1]};
 
   // --- ocn_02 ---
   Queue ocn02_rd_channel[4];
