@@ -92,7 +92,7 @@ PE Cluster("ClusterConfig.cfg") {
   QueueRdI ocn_rd_if;
   QueueWrI ocn_wr_if;
 
-  Core core("Core.cfg")[8];
+  Core core("Core.cfg")[4];
 
   ClusterScheduler cluster_scheduler;  //  Cluster Level Scheduler for cores
 
@@ -129,10 +129,6 @@ PE Cluster("ClusterConfig.cfg") {
   bind core[1].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[1]};
   bind core[2].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[2]};
   bind core[3].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[3]};
-  bind core[4].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[4]};
-  bind core[5].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[5]};
-  bind core[6].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[6]};
-  bind core[7].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[7]};
 
   bind edram_0_mem.ocn_wr_if {cluster_local_link_rd_channel[8]};
   bind edram_1_mem.ocn_wr_if {cluster_local_link_rd_channel[9]};
@@ -163,10 +159,6 @@ PE Cluster("ClusterConfig.cfg") {
   bind core[1].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[1]};
   bind core[2].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[2]};
   bind core[3].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[3]};
-  bind core[4].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[4]};
-  bind core[5].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[5]};
-  bind core[6].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[6]};
-  bind core[7].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[7]};
 
   bind edram_0_mem.ocn_rd_if    {cluster_local_link_wr_channel[8]};
   bind edram_1_mem.ocn_rd_if    {cluster_local_link_wr_channel[9]};
