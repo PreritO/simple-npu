@@ -77,9 +77,10 @@ void MemoryManager::MemoryManagerThread(std::size_t thread_id) {
 
       auto virtualaddr = Allocate(ipcpkt->bytes_to_allocate,
                                   ipcpkt->Allocation);
-
+                                  
+      npulog(cout << "Virtual Address: "<< virtualaddr<< endl;)
       memdecode dest = meminfo.decodevirtual(virtualaddr);
-
+      npulog(cout << "Decoded Dest Address: "<< dest.physcialaddr<< endl;)
       // TODO(Lemniscate): Condense it
       ipcpkt->table_name = "";
       ipcpkt->tlm_address = dest.physcialaddr;
@@ -114,6 +115,8 @@ unsigned long MemoryManager::wordsizetoBytes(std::size_t wordsize) { //NOLINT
 uint64_t
 MemoryManager::Allocate(tlm_addr_ bytes_to_allocate,
                         std::string TypeofAllocation) {
+  npulog(cout << "Type of allocation: "<< TypeofAllocation << ", bytes to allocate: " << bytes_to_allocate << endl;)
+  // npulog(MemoryRegions[TypeofAllocation].print();)
   auto result =  MemoryRegions[TypeofAllocation].allocate(bytes_to_allocate);
   // cout<< "Allocate - "<<TypeofAllocation<<endl;
   // MemoryRegions[TypeofAllocation].print();
