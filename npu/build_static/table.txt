@@ -11,8 +11,8 @@ insert_entry send_frame 1'2 rewrite_mac AA:AA:AA:AA:AA:01
 insert_entry send_frame 2'2 rewrite_mac AA:AA:AA:AA:AA:02
 
 #tcp_rewrite_dst
-insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
+#insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
 
 #tcp_rewrite_src
-insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
+#insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
 
