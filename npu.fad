@@ -328,7 +328,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Queue ocn22_wr_channel[3];
   //ocn_22                          //"ocn_12", "ocn_21", "cluster[5]", "cluster[7]", "cluster[9]"
   bind ocn_22.ocn_rd_if             {ocn12_wr_channel[2],ocn21_wr_channel[2],ocn22_rd_channel[0],ocn22_rd_channel[1], ocn22_rd_channel[2]};
-  bind ocn_22.ocn_wr_if             {ocn12_rd_channel[2],ocn21_rd_channel[2],ocn22_wr_channel[0],ocn22_wr_channel[1], ocn22_rd_channel[2]};
+  bind ocn_22.ocn_wr_if             {ocn12_rd_channel[2],ocn21_rd_channel[2],ocn22_wr_channel[0],ocn22_wr_channel[1], ocn22_wr_channel[2]};
 
   bind cluster[5].ocn_wr_if         {ocn22_rd_channel[0]};
   bind cluster[5].ocn_rd_if         {ocn22_wr_channel[0]};

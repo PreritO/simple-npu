@@ -119,7 +119,7 @@ Router::DetermineOutputPortNumber(std::string destination) {
     std::string NextNode = "INVALID";
     // Whelp not a connected node, check if nextnode is defined.
     std::tie(NextNode, result) = SearchinNextNodes(destination);
-    npulog(cout << "NextNode: " << NextNode <<", destination: "<< destination << endl;)
+    // npulog(cout << "NextNode: " << NextNode <<", destination: "<< destination << endl;)
     if (result == false) {
       npu_error(module_name()+" - Invalid destination: "+destination);
     } else {
