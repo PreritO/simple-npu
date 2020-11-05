@@ -68,8 +68,10 @@ ControlPlaneAgentHAL::tlmallocate(int BytestoAllocate) {
 void
 ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
   // 1. Find Where does this write go ?
+  cout<<"TLM Write: Virtual address: "<< VirtualAddress << endl;
   memdecode result = meminfo.decodevirtual(VirtualAddress);
   // 2. Write to mem + shadow edmems if decode return addr lies in edram region
+  cout<<"TLM Write: Address Map Key: "<< result.memname << endl;
   if (result.mappingdecode) {
     std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
     auto Mapping = meminfo.AddressMapping[AddressMapKey];
@@ -89,6 +91,7 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
                         (GetParent()->module_name(), pathtomem, memmessage));
       }
     }
+    cout<<"TLM Write: Wrote to eDRAM region" << endl;
   } else {
     auto memmessage = std::make_shared<IPC_MEM>();
     memmessage->id(3146);
@@ -97,6 +100,7 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
     memmessage->tlm_address = result.physcialaddr;
     ocn_wr_if->write(make_routing_packet
                     (GetParent()->module_name(), result.mempath, memmessage));
+    cout<<"TLM Write: Wrote to off-chip memory region" << endl;
   }
   // 3. Return Control
   return;

@@ -1,0 +1,53 @@
+## IPv4 LPM
+insert_entry ipv4_lpm 0.0.0.0/8 set_nhop 10.0.1.1    1
+insert_entry ipv4_lpm 0.0.0.0/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.4/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.6/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.8/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.10/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.12/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.14/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.16/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.18/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.20/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.22/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.24/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.26/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.30/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.32/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.34/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.36/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.38/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.40/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.42/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.44/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.46/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.48/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.50/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.52/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.54/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.56/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.58/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.62/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.64/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.66/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.68/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.70/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.72/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.74/32 set_nhop 10.0.1.2   2
+insert_entry ipv4_lpm 0.0.0.76/32 set_nhop 10.0.1.2   2
+
+# forward
+insert_entry forward 10.0.1.1 set_dmac FF:FF:FF:FF:FF:01
+insert_entry forward 10.0.1.2 set_dmac BB:BB:BB:BB:BB:01
+
+# send_frame
+insert_entry send_frame 1'2 rewrite_mac AA:AA:AA:AA:AA:01
+insert_entry send_frame 2'2 rewrite_mac AA:AA:AA:AA:AA:02
+
+#tcp_rewrite_dst
+insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
+
+#tcp_rewrite_src
+insert_entry tcp_rewrite_dst 10000'2 rewrite_tcp_dst 12358
+
