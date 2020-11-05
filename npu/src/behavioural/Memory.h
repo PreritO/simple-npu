@@ -98,6 +98,9 @@ Memory<T>::Memory
   int mem_size = GetParameter("Capacity").template get<int>();
   RD_LATENCY = rd_lat;
   WR_LATENCY = wr_lat;
+  //cout<<"Read latency for "<< pfp::core::convert_to_string(nm)<< ": " <<rd_lat << endl; 
+  //cout<<"Write latency for "<< pfp::core::convert_to_string(nm)<< ": " <<wr_lat << endl; 
+
   SIZE = mem_size;
   // Initialize memory with random data
   for (int i = 0; i < SIZE; i++) {

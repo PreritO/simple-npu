@@ -97,6 +97,7 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
     memmessage->tlm_address = result.physcialaddr;
     ocn_wr_if->write(make_routing_packet
                     (GetParent()->module_name(), result.mempath, memmessage));
+    //npulog(profile, cout << "Write to off-chip mem"<< endl;)
   }
   // 3. Return Control
   return;

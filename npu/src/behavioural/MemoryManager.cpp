@@ -81,6 +81,7 @@ void MemoryManager::MemoryManagerThread(std::size_t thread_id) {
       npulog(cout << "Virtual Address: "<< virtualaddr<< endl;)
       memdecode dest = meminfo.decodevirtual(virtualaddr);
       npulog(cout << "Decoded Dest Address: "<< dest.physcialaddr<< endl;)
+      //npulog(profile, cout << "Decoded Dest Address: "<< dest.physcialaddr<< endl;)
       // TODO(Lemniscate): Condense it
       ipcpkt->table_name = "";
       ipcpkt->tlm_address = dest.physcialaddr;

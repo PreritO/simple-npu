@@ -145,6 +145,7 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
             auto to_send = make_routing_packet
                            (PayloadFrom, PayloadTo, picked);
             ocn_wr_if->put(to_send);
+            //npulog(profile, cout << "Payload request. From: "<< PayloadFrom<< ", to: " << PayloadTo<<endl;)
           }
         } else {
           npu_error("Memory Controller "+setsourcetome_ +" "+Requester+" Invalid Command "+received_pd->command);  // NOLINT(whitespace/line_length)

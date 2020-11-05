@@ -55,7 +55,7 @@ if __name__=="__main__":
         for IngressVal,EgressVal in itertools.izip(IngressTrace,sortedEgressTrace):
             #print IngressVal + EgressVal
             diff = float(EgressVal[1])-float(IngressVal[1])
-            diffFileh.write(str(diff) + "\n")
+            diffFileh.write(str(IngressVal[0]) + ": " + str(diff) + "\n")
             avgsum = avgsum + diff
             count = count + 1
 
