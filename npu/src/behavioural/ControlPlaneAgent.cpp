@@ -152,11 +152,12 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
           cmd->get_action().get_name(), build_p4_action_data(cmd),
           &handle);
     p4->lock.write_unlock();
-
     return cmd->success_result(handle);
   } else {
     // Record the info of the insert for when we complete this transaction
     auto & table = cmd->get_table_name();
+    // outlog << "@" << sc_time_stamp() << ","
+    //      << table << "," << getMemUsage(table) << std::endl;
     transaction[table].push_back(
       std::static_pointer_cast<pfp::cp::InsertCommand>(
         cmd->shared_from_this()));
@@ -209,8 +210,9 @@ ControlPlaneAgent::process(pfp::cp::EndTransactionCommand *cmd) {
 
     bm::MatchErrorCode rc = p4->mt_add_entry(0,
       table, keys, actions, action_data, handles);
+    updateMemUsage(keys.size()*sizeof(bm::MatchKeyParam) + (action_data.size()*sizeof(bm::ActionData)));
+    //cout<< "Mem usage: "<< getMemUsage(table) << endl;
   }
-
   p4->lock.write_unlock();
 
   return res;

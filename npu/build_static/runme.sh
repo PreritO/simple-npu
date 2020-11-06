@@ -40,5 +40,6 @@ else
     vlvl='minimal'
 fi
 echo $vlvl
-#./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table.txt -Xin Configs/input.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
-/npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table-new.txt -Xin Configs/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+#./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table.txt -Xin Configs/input.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table-new.txt -Xin Configs/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+#./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop router_table.txt -Xin Configs/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"

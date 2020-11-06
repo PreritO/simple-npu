@@ -32,7 +32,7 @@
 #include <string>
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
-// #define debug_tlm_mem_transaction 1
+#define debug_tlm_mem_transaction 1
 MemoryController::MemoryController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):MemoryControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
   sc_object* parent_ = this->get_parent_object();
@@ -309,7 +309,7 @@ MemoryController::tlm_write(tlm_data_type addr, tlm_data_type datatowrite) {
   }
 
 #if debug_tlm_mem_transaction
-  cout << modulename() << " transaction = { " << (cmd ? 'W' : 'R') << ", "
+  cout << " transaction = { " << (cmd ? 'W' : 'R') << ", "
        << hex << addr << " } , data = " << hex << datatowrite << dec
        <<" at time " << sc_time_stamp() << " delay = " << delay << endl;
   // delay annotated onto the transport call

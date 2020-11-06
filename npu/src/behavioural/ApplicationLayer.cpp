@@ -68,6 +68,7 @@ void ApplicationLayer::do_processing(std::size_t thread_id,
   std::string ApplicationName = SimulationParameters["application_name"].get();
   auto received_p = call_application(ApplicationName)(counter, std::ref(pd),
       std::ref(payload), nullptr);
+  //npulog(profile, cout << "packet Id: " << pd.id() << "call application thread: " << ApplicationName << ", counter: "<< counter<< endl;)
   payload = received_p;
   wait(counter, SC_NS);
 }

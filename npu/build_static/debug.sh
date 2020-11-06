@@ -29,5 +29,5 @@
 # 02110-1301, USA.
 #
 
-
-pfpdb npu-sim --args "-Xp4 simple_router.json -Xtpop table.txt -v minimal -Xin Configs/input.pcap -Xvalidation-out output.pcap" -v
+# /npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table-new.txt -Xin Configs/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+pfpdb npu-sim --args "-Xp4 simple_router.json -Xtpop table-new.txt -v normal -Xin Configs/10kflows.pcap -Xvalidation-out output.pcap" -v

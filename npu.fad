@@ -96,6 +96,7 @@ PE Cluster("ClusterConfig.cfg") {
 
   ClusterScheduler cluster_scheduler;  //  Cluster Level Scheduler for cores
 
+  // Todo: change this to single memory module
   Mem edram_0_mem("memory.cfg"),
       edram_1_mem("memory.cfg"),
       edram_2_mem("memory.cfg"),
