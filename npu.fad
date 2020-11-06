@@ -198,33 +198,33 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Deparser deparser;
   ControlPlaneAgent cpagent;
   Mem mct_0_mem("OffChipConfig.cfg");
-  Mem edram_payload_mem("memory.cfg");
+  //Mem edram_payload_mem("memory.cfg");
   MemoryManager memory_manager;
   Router ocn_00, ocn_10, ocn_20;
   Router ocn_01, ocn_11, ocn_21;
   Router ocn_02, ocn_12, ocn_22;
 
   // --- ocn_00 ---
-  Queue ocn00_rd_channel[4];
-  Queue ocn00_wr_channel[4];
+  Queue ocn00_rd_channel[3];
+  Queue ocn00_wr_channel[3];
 
-  //ocn_00                          //"deparser", "edram_payload_mem", "ocn_10", "ocn_01"
-  bind ocn_00.ocn_rd_if             {ocn00_rd_channel[0], ocn00_rd_channel[1], ocn00_rd_channel[2], ocn00_rd_channel[3]};
-  bind ocn_00.ocn_wr_if             {ocn00_wr_channel[0], ocn00_wr_channel[1], ocn00_wr_channel[2], ocn00_wr_channel[3]};
+  //ocn_00                          //"deparser", "ocn_10", "ocn_01"
+  bind ocn_00.ocn_rd_if             {ocn00_rd_channel[0], ocn00_rd_channel[1], ocn00_rd_channel[2]};
+  bind ocn_00.ocn_wr_if             {ocn00_wr_channel[0], ocn00_wr_channel[1], ocn00_wr_channel[2]};
 
   bind deparser.ocn_rd_if           {ocn00_wr_channel[0]};
   bind deparser.ocn_wr_if           {ocn00_rd_channel[0]};
 
-  bind edram_payload_mem.ocn_rd_if  {ocn00_wr_channel[1]};
-  bind edram_payload_mem.ocn_wr_if  {ocn00_rd_channel[1]};
+  //bind edram_payload_mem.ocn_rd_if  {ocn00_wr_channel[1]};
+  //bind edram_payload_mem.ocn_wr_if  {ocn00_rd_channel[1]};
 
   // --- ocn_10 ---
   Queue ocn10_rd_channel[4];
   Queue ocn10_wr_channel[4];
 
   //ocn_10                          //"ocn_00", "tm", "roc", "ocn_20", "ocn_11"
-  bind ocn_10.ocn_rd_if             {ocn00_wr_channel[2], ocn10_rd_channel[0], ocn10_rd_channel[1], ocn10_rd_channel[2], ocn10_rd_channel[3]};
-  bind ocn_10.ocn_wr_if             {ocn00_rd_channel[2], ocn10_wr_channel[0], ocn10_wr_channel[1], ocn10_wr_channel[2], ocn10_wr_channel[3]};
+  bind ocn_10.ocn_rd_if             {ocn00_wr_channel[1], ocn10_rd_channel[0], ocn10_rd_channel[1], ocn10_rd_channel[2], ocn10_rd_channel[3]};
+  bind ocn_10.ocn_wr_if             {ocn00_rd_channel[1], ocn10_wr_channel[0], ocn10_wr_channel[1], ocn10_wr_channel[2], ocn10_wr_channel[3]};
 
   bind tm.ocn_rd_if                 {ocn10_wr_channel[0]};
   bind tm.ocn_wr_if                 {ocn10_rd_channel[0]};
@@ -257,8 +257,8 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Queue ocn01_wr_channel[4];
 
   //ocn_01                          //"ocn_00", "parser", "splitter", "ocn_11", "ocn_02"
-  bind ocn_01.ocn_rd_if             {ocn00_wr_channel[3],ocn01_rd_channel[0],ocn01_rd_channel[1],ocn01_rd_channel[2],ocn01_rd_channel[3]};
-  bind ocn_01.ocn_wr_if             {ocn00_rd_channel[3],ocn01_wr_channel[0],ocn01_wr_channel[1],ocn01_wr_channel[2],ocn01_wr_channel[3]};
+  bind ocn_01.ocn_rd_if             {ocn00_wr_channel[2],ocn01_rd_channel[0],ocn01_rd_channel[1],ocn01_rd_channel[2],ocn01_rd_channel[3]};
+  bind ocn_01.ocn_wr_if             {ocn00_rd_channel[2],ocn01_wr_channel[0],ocn01_wr_channel[1],ocn01_wr_channel[2],ocn01_wr_channel[3]};
 
   bind parser.ocn_wr_if             {ocn01_rd_channel[0]};
   bind parser.ocn_rd_if             {ocn01_wr_channel[0]};
