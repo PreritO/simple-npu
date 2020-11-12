@@ -1,0 +1,18 @@
+#table_add nat doNATOperations ac:1f:6b:36:94:28 ac:1f:6b:36:90:48 10.0.0.7/8 10.0.0.5 => 00:00:00:00:00:03 10.0.0.3 2
+#insert_entry nat doNATOperations ac:1f:6b:36:90:48 ac:1f:6b:36:94:28 10.0.0.5/8 10.0.0.7 => 00:00:00:00:00:03 10.0.0.3 1
+
+insert_entry nat 10.0.0.0/8 doNATOperations 00:00:00:00:00:03 10.0.0.1 2
+insert_entry nat 10.0.1.2/32 doNATOperations 00:00:00:00:00:03 10.0.0.2 3
+#insert_entry nat 0.0.2.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.3 4
+#insert_entry nat 0.0.3.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.4 5
+#insert_entry nat 0.0.4.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.5 6
+#insert_entry nat 0.0.5.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.6 7
+#insert_entry nat 0.0.6.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.7 8
+#insert_entry nat 0.0.7.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.8 9
+#insert_entry nat 0.0.8.0/32 doNATOperations 00:00:00:00:00:03 10.0.0.9 10
+#insert_entry nat 0.0.9.0/32 doNATOperations 00:00:00:00:00:03 10.0.1.0 11
+
+
+#insert_entry nat 10.0.1.2/32 doNATOperations 10.0.0.2
+
+#table_add nat doNATOperations 00:aa:bb:00:00:01 00:04:00:00:00:01 10.0.1.2/24 10.0.1.1 => 00:00:00:00:00:03 10.0.0.3 1

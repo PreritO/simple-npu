@@ -1,0 +1,2 @@
+insert_entry firewall 10.0.0.5/32 forward 3
+insert_entry firewall 10.0.0.7/32 forward 2

@@ -1,0 +1,22 @@
+#table_set_default send_frame _drop
+#table_set_default forward _drop
+#table_set_default ecmp_group _drop
+#table_set_default ecmp_nhop _drop
+#table_add send_frame rewrite_mac 1 => 00:00:00:00:00:01
+#table_add send_frame rewrite_mac 2 => 00:00:00:00:00:02
+#table_add forward set_dmac 10.0.0.1 => 00:00:00:00:00:01
+#table_add forward set_dmac 10.0.0.2 => 00:00:00:00:00:02
+#table_add ecmp_group set_ecmp_select 10.0.0.1/32 => 0 2
+#table_add ecmp_nhop set_nhop 0 => 10.0.0.2 2
+#table_add ecmp_nhop set_nhop 1 => 10.0.0.2 2
+
+#insert_entry ecmp_nhop 0 set_nhop 10.0.0.2 2
+#insert_entry ecmp_nhop 2 set_nhop 10.0.0.2 2
+
+insert_entry forward 10.0.0.5 set_dmac ac:1f:6b:36:90:48
+insert_entry forward 10.0.0.7 set_dmac ac:1f:6b:36:94:28
+
+insert_entry send_frame 10.0.0.5 rewrite_mac ac:1f:6b:36:94:28
+insert_entry send_frame 10.0.0.7 rewrite_mac ac:1f:6b:36:90:48
+
+insert_entry ecmp_group 10.0.1.0/24 set_ecmp_select 0 2
