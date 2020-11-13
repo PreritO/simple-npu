@@ -90,6 +90,7 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
       }
     }
   } else {
+    npulog(cout << "Off-chip Control Plane Write" << endl;)
     auto memmessage = std::make_shared<IPC_MEM>();
     memmessage->id(3146);
     memmessage->RequestType = "WRITE";

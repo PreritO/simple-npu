@@ -60,9 +60,9 @@ else
     if [[ $application == "nat" ]] ; then #NAT
         ./npu-sim -c Configs/ -Xp4 apps/nat/nat_new.json -Xtpop apps/nat/nat_cmd_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
     elif [[ $application == "router" ]]; then
-        ./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table.txt -Xin Configs/input.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+        #./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table.txt -Xin Configs/input.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
         #./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
-        #./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/170pkts.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+        ./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/170pkts.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
 
     else
         echo "not yet implemented.."
