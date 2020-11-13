@@ -71,6 +71,7 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
   memdecode result = meminfo.decodevirtual(VirtualAddress);
   // 2. Write to mem + shadow edmems if decode return addr lies in edram region
   if (result.mappingdecode) {
+    //npulog(cout << "On-chip Control Plane Write" << endl;)
     std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
     auto Mapping = meminfo.AddressMapping[AddressMapKey];
     int totalclusters = SimulationParameters["clusters"].get<int>();

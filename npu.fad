@@ -189,7 +189,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Deparser deparser;
   ControlPlaneAgent cpagent;
   Mem mct_0_mem("OffChipConfig.cfg");
-  Mem edram_payload_mem("memory.cfg");
+  Mem edram_payload_mem("MemoryConfig.cfg");
   MemoryManager memory_manager;
   Router ocn_00, ocn_10, ocn_20;
   Router ocn_01, ocn_11, ocn_21;

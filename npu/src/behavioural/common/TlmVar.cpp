@@ -85,7 +85,7 @@ std::size_t tlmvar::allocate_mem(int size_of_data) {
       ControlPlaneAgent* cpagentptr;
       cpagentptr = dynamic_cast<ControlPlaneAgent*>(current_scmodule);
       // 2. Call the HAL Function to Allocate
-      // Todo: Dont hardcode it
+      //npulog(cout << "TlmVar Allocated, size of data:" << size_of_data << endl;)
       std::size_t AllocatedVirtualAddress
           = cpagentptr->cpagenthal->tlmallocate(size_of_data);
       npulog(cout << "TlmVar Allocated@:" << AllocatedVirtualAddress << endl;)
