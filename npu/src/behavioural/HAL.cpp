@@ -227,7 +227,6 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   }
 
   npulog(cout << "IN TLM READ, dest memory: " << destination_memory << endl;)
-
   // 3.2 Prepare Packet to send to MEM
   // 3.2.1 set the destination memory
   auto memmessage = make_routing_packet
@@ -237,6 +236,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   int pktid = memmessage->payload->id();
   memmessage->payload->RequestType = "READ";
   memmessage->payload->tlm_address = result.physcialaddr;
+  npulog(cout << "tlm_address " << result.physcialaddr << endl;)
   cluster_local_switch_wr_if->put(memmessage);
   wait(tlmvar_halevent);
   bool foundinmap = false;

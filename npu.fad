@@ -113,14 +113,14 @@ PE Cluster("ClusterConfig.cfg") {
 
   ClusterScheduler cluster_scheduler;  //  Cluster Level Scheduler for cores
 
-  SRAM edram_0_mem("memory.cfg"),
-      edram_1_mem("memory.cfg"),
-      edram_2_mem("memory.cfg"),
-      edram_3_mem("memory.cfg");
+  SRAM edram_0_mem("memory.cfg");
+  //    edram_1_mem("memory.cfg"),
+  //    edram_2_mem("memory.cfg"),
+  //    edram_3_mem("memory.cfg");
 
   Router cluster_local_switch;
 
-  Queue cluster_local_link_rd_channel[9];
+  Queue cluster_local_link_rd_channel[6];
 
   // bind cluster_local_switch.ocn_rd_if  {cluster_local_link_rd_channel,ocn_rd_if};
   // bind cluster_local_switch.ocn_rd_if  {cluster_local_link_rd_channel[0:5],ocn_rd_if};
@@ -133,9 +133,6 @@ PE Cluster("ClusterConfig.cfg") {
                                         cluster_local_link_rd_channel[3],
                                         cluster_local_link_rd_channel[4],
                                         cluster_local_link_rd_channel[5],
-                                        cluster_local_link_rd_channel[6],
-                                        cluster_local_link_rd_channel[7],
-                                        cluster_local_link_rd_channel[8],
                                         ocn_rd_if};
 
   bind core[0].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[0]};
@@ -144,13 +141,13 @@ PE Cluster("ClusterConfig.cfg") {
   bind core[3].cluster_local_switch_wr_if    {cluster_local_link_rd_channel[3]};
 
   bind edram_0_mem.ocn_wr_if {cluster_local_link_rd_channel[4]};
-  bind edram_1_mem.ocn_wr_if {cluster_local_link_rd_channel[5]};
-  bind edram_2_mem.ocn_wr_if {cluster_local_link_rd_channel[6]};
-  bind edram_3_mem.ocn_wr_if {cluster_local_link_rd_channel[7]};
+  //bind edram_1_mem.ocn_wr_if {cluster_local_link_rd_channel[5]};
+  //bind edram_2_mem.ocn_wr_if {cluster_local_link_rd_channel[6]};
+  //bind edram_3_mem.ocn_wr_if {cluster_local_link_rd_channel[7]};
 
-  bind cluster_scheduler.cluster_local_switch_wr_if {cluster_local_link_rd_channel[8]};
+  bind cluster_scheduler.cluster_local_switch_wr_if {cluster_local_link_rd_channel[5]};
 
-  Queue cluster_local_link_wr_channel[9];
+  Queue cluster_local_link_wr_channel[6];
 
   bind cluster_local_switch.ocn_wr_if {
                                         cluster_local_link_wr_channel[0],
@@ -159,9 +156,6 @@ PE Cluster("ClusterConfig.cfg") {
                                         cluster_local_link_wr_channel[3],
                                         cluster_local_link_wr_channel[4],
                                         cluster_local_link_wr_channel[5],
-                                        cluster_local_link_wr_channel[6],
-                                        cluster_local_link_wr_channel[7],
-                                        cluster_local_link_wr_channel[8],
                                         ocn_wr_if};
 
   bind core[0].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[0]};
@@ -170,11 +164,11 @@ PE Cluster("ClusterConfig.cfg") {
   bind core[3].cluster_local_switch_rd_if    {cluster_local_link_wr_channel[3]};
 
   bind edram_0_mem.ocn_rd_if    {cluster_local_link_wr_channel[4]};
-  bind edram_1_mem.ocn_rd_if    {cluster_local_link_wr_channel[5]};
-  bind edram_2_mem.ocn_rd_if    {cluster_local_link_wr_channel[6]};
-  bind edram_3_mem.ocn_rd_if    {cluster_local_link_wr_channel[7]};
+  //bind edram_1_mem.ocn_rd_if    {cluster_local_link_wr_channel[5]};
+  //bind edram_2_mem.ocn_rd_if    {cluster_local_link_wr_channel[6]};
+  //bind edram_3_mem.ocn_rd_if    {cluster_local_link_wr_channel[7]};
 
-  bind cluster_scheduler.cluster_local_switch_rd_if {cluster_local_link_wr_channel[8]};
+  bind cluster_scheduler.cluster_local_switch_rd_if {cluster_local_link_wr_channel[5]};
 };
 
 PE ReorderController {
