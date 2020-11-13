@@ -1,5 +1,5 @@
 insert_entry ipv4_lpm 0.0.0.0/8 set_nhop 10.0.1.1 1
-insert_entry ipv4_lpm 0.0.0.0/32 set_nhop 10.0.1.1    2
+insert_entry ipv4_lpm 0.0.0.0/32 set_nhop 10.0.1.1    1
 insert_entry ipv4_lpm 0.0.0.2/32 set_nhop 10.0.1.2    2
 insert_entry ipv4_lpm 0.0.0.4/32 set_nhop 10.0.1.2    2
 insert_entry ipv4_lpm 0.0.0.6/32 set_nhop 10.0.1.2    2
