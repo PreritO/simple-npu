@@ -50,11 +50,14 @@ if __name__=="__main__":
 
     avgsum =0
     count =0
-    for IngressVal,EgressVal in itertools.izip(IngressTrace,sortedEgressTrace):
-        #print IngressVal + EgressVal
-        diff = float(EgressVal[1])-float(IngressVal[1])
-        avgsum = avgsum + diff
-        count = count + 1
+    diffFile = "diff.txt"
+    with open(diffFile,"a") as diffFileh :
+        for IngressVal,EgressVal in itertools.izip(IngressTrace,sortedEgressTrace):
+            #print IngressVal + EgressVal
+            diff = float(EgressVal[1])-float(IngressVal[1])
+            diffFileh.write(str(IngressVal[0]) + ": " + str(diff) + "\n")
+            avgsum = avgsum + diff
+            count = count + 1
 
     avg_latency = avgsum/count
 

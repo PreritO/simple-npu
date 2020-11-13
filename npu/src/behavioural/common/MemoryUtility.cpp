@@ -91,6 +91,7 @@ MemoryUtility::decodevirtual(tlm_addr_ virtualaddr) {
     for (json::iterator it = Layout.begin();
          it != Layout.end(); ++it) {
       std::string Memname = it->get<std::string>();
+      //npulog(cout << "MemoryUtility::decodevirtual(): Memname: " << Memname << ", size: " << getMemorySize(Memname) << endl;)
       if (virtualaddr < getMemorySize(Memname)) {
         result.physcialaddr = virtualaddr - boundary;
         result.memname = Memname;

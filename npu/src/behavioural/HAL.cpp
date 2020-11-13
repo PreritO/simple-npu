@@ -226,6 +226,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
     destination_memory = result.mempath;
   }
 
+  npulog(cout << "IN TLM READ, dest memory: " << destination_memory << endl;)
 
   // 3.2 Prepare Packet to send to MEM
   // 3.2.1 set the destination memory

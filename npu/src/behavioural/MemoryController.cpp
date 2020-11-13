@@ -119,11 +119,14 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
                              <PacketDescriptor>(received_tr)) {
         auto pdpkt = received_pd->payload;
         std::string Requester = received_pd->source;
+        npulog(cout << "Pkt id: " << pdpkt->id() << ", Requester: " << Requester << endl;)
         if (received_pd->command.find("payload_request")
               != std::string::npos) {
           // 3. Pick data from memory
           if (memory_.find(pdpkt->id()) == memory_.end()) {
-            npu_error("CDU dropped because of memory: "+memname_+" pkt id: "+std::to_string(pdpkt->id())+" Command: "+received_pd->command);  // NOLINT(whitespace/line_length)
+            //npu_error("CDU dropped because of memory: "+memname_+" pkt id: "+std::to_string(pdpkt->id())+" Command: "+received_pd->command);  // NOLINT(whitespace/line_length)
+            // This is where we could come back to process the packet at a later time..
+            npulog(cout << "CDU dropped because of memory: "+memname_+" pkt id: "+std::to_string(pdpkt->id())+" Command: "+received_pd->command << endl;)
           } else {
             auto picked = memory_.at(pdpkt->id());
             mtx_memory_.lock();
