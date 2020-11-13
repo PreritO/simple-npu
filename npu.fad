@@ -14,6 +14,12 @@ PE MemoryController {
   MemI memory_if;
 };
 
+PE SRAMController {
+  QueueRdI ocn_rd_if;
+  QueueWrI ocn_wr_if;
+  MemI memory_if;
+};
+
 PE MemoryManager {
   QueueRdI rd_if;
   QueueWrI wr_if;
@@ -28,6 +34,17 @@ PE Mem("MemoryConfig.cfg") {
   bind memory_controller.memory_if {tlm_memory};
   bind memory_controller.ocn_rd_if {ocn_rd_if};
   bind memory_controller.ocn_wr_if {ocn_wr_if};
+};
+
+PE SRAM("MemoryConfig.cfg") {
+  QueueRdI ocn_rd_if;
+  QueueWrI ocn_wr_if;
+  Memory tlm_memory;  //CE
+  SRAMController sram_controller;  //PE
+
+  bind sram_controller.memory_if {tlm_memory};
+  bind sram_controller.ocn_rd_if {ocn_rd_if};
+  bind sram_controller.ocn_wr_if {ocn_wr_if};
 };
 
 PE Splitter {
@@ -96,7 +113,7 @@ PE Cluster("ClusterConfig.cfg") {
 
   ClusterScheduler cluster_scheduler;  //  Cluster Level Scheduler for cores
 
-  Mem edram_0_mem("memory.cfg"),
+  SRAM edram_0_mem("memory.cfg"),
       edram_1_mem("memory.cfg"),
       edram_2_mem("memory.cfg"),
       edram_3_mem("memory.cfg");
