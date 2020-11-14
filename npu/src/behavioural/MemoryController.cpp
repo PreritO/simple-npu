@@ -89,9 +89,7 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
       if (ipcpkt->RequestType.find("WRITE") != std::string::npos) {
             tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
       } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
-        // Perform Read operation
         ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
@@ -106,10 +104,21 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
         }
         ipcpkt_SentFrom = setsourcetome_;  // set sender info to myself
 
+        // // Perform Read operation
+        // npulog(cout << "MCT READ OPERATION, src: " << ipcpkt_SentFrom << ", dest: " << ipcpkt_SentTo << endl;)
+
         auto to_send = make_routing_packet
             (ipcpkt_SentFrom, ipcpkt_SentTo, ipcpkt);
         ocn_wr_if->put(to_send);
 
+      } else if (ipcpkt->RequestType.find("COPY") != std::string::npos) {
+        npulog(cout << "MCT COPY OPERATION"<< endl;)
+        ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        // Send it back out to HAL now... todo: need to not hard code this  
+        auto to_send = make_routing_packet
+            (setsourcetome_, ipcpkt_SentFrom, ipcpkt);
+        npulog(cout << "MCT GOT COPY from HAL, sending response of tlm to HAL" << ipcpkt->tlm_address << " with data..." << endl;)
+        ocn_wr_if->put(to_send);
       } else {
         npu_error("TLMCRTLR IPC_MEM Invalid command in "+memname_);
       }

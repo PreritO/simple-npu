@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include "../structural/SRAMControllerSIM.h"
 
 #include "tlm.h"  // NOLINT(build/include)
@@ -11,7 +12,6 @@
 #include "tlm_utils/simple_target_socket.h"
 
 #include "CommonIncludes.h"
-
 
 class SRAMController: public SRAMControllerSIM {
  public:
@@ -33,6 +33,9 @@ class SRAMController: public SRAMControllerSIM {
 
   std::string ExtractCorefromCluster(std::string);
 
+  void refer(int x);
+  void display();
+
  private:
   void SRAMControllerThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;
@@ -46,6 +49,12 @@ class SRAMController: public SRAMControllerSIM {
   std::map<std::size_t, std::shared_ptr<PacketDescriptor>> memory_missed;
   sc_time RD_LATENCY;
   sc_time WR_LATENCY;
+
+  // store keys of cache
+  std::list<int> dq;
+  // store references of key in cache
+  std::unordered_map<int, std::list<int>::iterator> ma;
+  int csize; // maximum capacity of cache
 };
 
 #endif  // BEHAVIOURAL_MEMORYCONTROLLER_H_

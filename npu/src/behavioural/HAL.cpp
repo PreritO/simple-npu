@@ -223,10 +223,34 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
     destination_memory
           = meminfo.getDestinationMemory(GetParent()->module_name());
   } else {
+    // This means that the data is not on eDRAM and so the dest_mem should be mct, this means that we should trigger
+    // a fetch from mct to edram here so if another packet needs to get the same virtual address, it should be in SRAM..
     destination_memory = result.mempath;
+
+    auto memmessage = make_routing_packet
+          (name + core_number, destination_memory, std::make_shared<IPC_MEM>());
+    memmessage->payload->id(tlmreqcounter++);
+    int pktid = memmessage->payload->id();
+    memmessage->payload->RequestType = "COPY";
+    memmessage->payload->tlm_address = result.physcialaddr;
+    npulog(cout << "Sending Message to MCT FROM SRAM, Pkt id: " << memmessage->payload->id() << ", TLM Address:" << memmessage->payload->tlm_address  << endl;)
+    cluster_local_switch_wr_if->put(memmessage);
+
+    // The HAL will need to facilitate the SRAM cache.. which I don't agree with but let's see if it works first
+    auto received_mct_tr = cluster_local_switch_rd_if->get();
+    if (auto mem_received = try_unbox_routing_packet<IPC_MEM>(received_mct_tr)) {
+      auto ipcpkt = mem_received->payload;
+      std::string ipcpkt_SentFrom = mem_received->source;
+      std::string ipcpkt_SentTo = mem_received->destination;
+      // forward this to the SRAM
+      auto memmessage = make_routing_packet
+          (destination_memory, "edram_0_mem", std::make_shared<IPC_MEM>());
+        memmessage->payload->RequestType = "COPYWRITE";
+        memmessage->payload->tlm_address = ipcpkt->tlm_address - result.physcialaddr;
+        cluster_local_switch_wr_if->put(memmessage);
+    }
   }
 
-  npulog(cout << "IN TLM READ, dest memory: " << destination_memory << endl;)
   // 3.2 Prepare Packet to send to MEM
   // 3.2.1 set the destination memory
   auto memmessage = make_routing_packet
@@ -236,7 +260,8 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   int pktid = memmessage->payload->id();
   memmessage->payload->RequestType = "READ";
   memmessage->payload->tlm_address = result.physcialaddr;
-  npulog(cout << "tlm_address " << result.physcialaddr << endl;)
+  npulog(cout << "BEGINNING IN TLM READ pkt id: " << pktid << ", dest memory: " << destination_memory << endl;)
+  //npulog(cout << "tlm_address " << result.physcialaddr << endl;)
   cluster_local_switch_wr_if->put(memmessage);
   wait(tlmvar_halevent);
   bool foundinmap = false;
@@ -265,6 +290,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
            << " got for:" << recv_p->tlm_address
            << " reqcounteris:" << tlmreqcounter << endl;)
   }
+  npulog(cout << "End in IN TLM READ, pkt id: " << memmessage->payload->id() << endl;)
   return recv_p->bytes_to_allocate;
 }
 

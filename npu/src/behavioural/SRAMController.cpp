@@ -3,6 +3,7 @@
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
 // #define debug_tlm_mem_transaction 1
+ 
 SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SRAMControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
   sc_object* parent_ = this->get_parent_object();
@@ -25,6 +26,8 @@ SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, 
   } else {
     setsourcetome_ = memname;
   }
+
+  csize = 10;
   /*sc_spawn threads*/
   ThreadHandles.push_back(
     sc_spawn(sc_bind(&SRAMController::SRAMControllerThread, this, 0)));
@@ -60,8 +63,8 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
             tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
       } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
         // Perform Read operation
+        npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
         ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
@@ -80,6 +83,17 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
             (ipcpkt_SentFrom, ipcpkt_SentTo, ipcpkt);
         ocn_wr_if->put(to_send);
 
+      } else if(ipcpkt->RequestType.find("COPYWRITE") != std::string::npos) {
+        // Again, don't hardcode this but just need to make this work rn...
+        // check here if the src is from memorycontroller.. if so, then trigger a fetch for the rule
+        // from mct...
+        if (ipcpkt_SentFrom.find("mct") != std::string::npos) {
+          npulog(cout << "COPY WRITE RESPONSE SENT FROM MCT!!! Pkt id: " << ipcpkt->id() << ", TLM Address:" << ipcpkt->tlm_address  << endl;)
+          //Now, we can add it to the SRAM cache.. 
+          // Perform an IPC_MEM copy operation
+          // Need to change the TLM address here... ideally, need to offset it by tlm_address - size??
+          tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
+          }    
       } else {
         npu_error("TLMCRTLR IPC_MEM Invalid command in "+memname_);
       }
@@ -317,4 +331,44 @@ SRAMController::tlm_read(tlm_data_type addr) {
 #endif
   wait(delay);
   return read_val;
+}
+
+// Refers key x with in the LRU cache
+void SRAMController::refer(int x)
+{
+    // not present in cache
+    if (ma.find(x) == ma.end()) {
+        // cache is full
+        if (dq.size() == csize) {
+            // delete least recently used element
+            int last = dq.back();
+ 
+            // Pops the last elmeent
+            dq.pop_back();
+ 
+            // Erase the last
+            ma.erase(last);
+        }
+    }
+ 
+    // present in cache
+    else
+        dq.erase(ma[x]);
+ 
+    // update reference
+    dq.push_front(x);
+    ma[x] = dq.begin();
+}
+
+// Function to display contents of cache
+void SRAMController::display()
+{
+ 
+    // Iterate in the deque and print
+    // all the elements in it
+    for (auto it = dq.begin(); it != dq.end();
+         it++)
+        cout << (*it) << " ";
+ 
+    cout << endl;
 }
