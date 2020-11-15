@@ -112,12 +112,11 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
         ocn_wr_if->put(to_send);
 
       } else if (ipcpkt->RequestType.find("COPY") != std::string::npos) {
-        npulog(cout << "MCT COPY OPERATION"<< endl;)
-        ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-        // Send it back out to HAL now... todo: need to not hard code this  
+        ipcpkt->tlm_data = tlm_read(ipcpkt->tlm_address);
+        // Send it out (the message ideally came from SRAM and so we need to forward it there..) 
         auto to_send = make_routing_packet
             (setsourcetome_, ipcpkt_SentFrom, ipcpkt);
-        npulog(cout << "MCT GOT COPY from HAL, sending response of tlm to HAL" << ipcpkt->tlm_address << " with data..." << endl;)
+        npulog(cout << "Sending message back to the cluster/core it came from with data.." << endl;)
         ocn_wr_if->put(to_send);
       } else {
         npu_error("TLMCRTLR IPC_MEM Invalid command in "+memname_);

@@ -14,9 +14,10 @@ SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, 
 
   sc_time rd_lat(rdlt, SC_NS);
   sc_time wr_lat(wrlt, SC_NS);
-  int mem_size = GetParameter("Capacity").template get<int>();
+  mem_size = GetParameter("Capacity").template get<int>();
   RD_LATENCY = rd_lat;
   WR_LATENCY = wr_lat;
+  newTLMAdress = 0;
 
   std::string memname = modulename;
   memname_ = memname;
@@ -60,11 +61,33 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
 
       // Check if Read or Write operation
       if (ipcpkt->RequestType.find("WRITE") != std::string::npos) {
+            // if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
+            //   npulog(cout << "Entry already exists in SRAM.." << endl;)
+            // } else {
+            //   mtx_tlmMap_.lock();
+            //   newTLMAdress++;
+            //   if(newTLMAdress >= mem_size) {
+            //     newTLMAdress = newTLMAdress-mem_size;
+            //   }
+            //   tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
+            //   mtx_tlmMap_.unlock();
+            //   tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
+            // }
             tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
       } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
         // Perform Read operation
         npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
-        ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        // Before we conduct the read here, let's check if this empty was copied over earlier..
+        TlmType mappedAddress = ipcpkt->tlm_address;
+        if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
+            // use the new virtual address here..
+            mappedAddress = tlm_map.at(ipcpkt->tlm_address);
+            npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
+        } else {
+          mappedAddress = ipcpkt->tlm_address;
+          npulog(cout << "Using unmapped version of the TLM address here. Original: " << ipcpkt->tlm_address << endl;)
+        }
+        ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
@@ -83,17 +106,21 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
             (ipcpkt_SentFrom, ipcpkt_SentTo, ipcpkt);
         ocn_wr_if->put(to_send);
 
-      } else if(ipcpkt->RequestType.find("COPYWRITE") != std::string::npos) {
-        // Again, don't hardcode this but just need to make this work rn...
-        // check here if the src is from memorycontroller.. if so, then trigger a fetch for the rule
-        // from mct...
-        if (ipcpkt_SentFrom.find("mct") != std::string::npos) {
-          npulog(cout << "COPY WRITE RESPONSE SENT FROM MCT!!! Pkt id: " << ipcpkt->id() << ", TLM Address:" << ipcpkt->tlm_address  << endl;)
-          //Now, we can add it to the SRAM cache.. 
-          // Perform an IPC_MEM copy operation
-          // Need to change the TLM address here... ideally, need to offset it by tlm_address - size??
-          tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
-          }    
+      } else if(ipcpkt->RequestType.find("COPY") != std::string::npos) {
+          //npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is:" << endl;)
+          npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is: " << ipcpkt->tlm_address  << endl;)
+          if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
+            mtx_tlmMap_.lock();
+            newTLMAdress++;
+            if(newTLMAdress >= mem_size) {
+              newTLMAdress = newTLMAdress-mem_size;
+            }
+            tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
+            mtx_tlmMap_.unlock();
+            tlm_write(newTLMAdress, ipcpkt->tlm_data);
+          } else {
+            npulog(cout << "entry exists already in tlmMap.." << endl;)
+          }   
       } else {
         npu_error("TLMCRTLR IPC_MEM Invalid command in "+memname_);
       }

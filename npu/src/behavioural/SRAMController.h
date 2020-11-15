@@ -43,12 +43,17 @@ class SRAMController: public SRAMControllerSIM {
   std::string memname_;
   std::string setsourcetome_;
   sc_mutex mtx_memory_;
+  // Memory Map to map virtual address to TLM write..
+  std::map<TlmType, TlmType> tlm_map;
+  sc_mutex mtx_tlmMap_;
+  TlmType newTLMAdress;
   //! Memory Map for Host Allocation
   std::map<std::size_t, std::shared_ptr<Packet>> memory_;
   //! Internal representation of memory
   std::map<std::size_t, std::shared_ptr<PacketDescriptor>> memory_missed;
   sc_time RD_LATENCY;
   sc_time WR_LATENCY;
+  int mem_size;
 
   // store keys of cache
   std::list<int> dq;

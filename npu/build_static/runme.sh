@@ -1,4 +1,5 @@
 rm *.csv
+rm diff.txt
 #
 # simple-npu: Example NPU simulation model using the PFPSim Framework
 #
