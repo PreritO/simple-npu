@@ -2,6 +2,7 @@ interface QueueRdI, QueueWrI, MemI;
 service  HalS, ControlPlaneAgentS, ControlPlaneAgentHalS;
 CE Queue("QueueConfig.cfg") implements QueueRdI, QueueWrI;
 CE Memory implements MemI;
+CE SRAMMemory implements MemI;
 
 PE Router("RouterConfig.cfg") {
   QueueRdI ocn_rd_if[];
@@ -39,7 +40,7 @@ PE Mem("MemoryConfig.cfg") {
 PE SRAM("MemoryConfig.cfg") {
   QueueRdI ocn_rd_if;
   QueueWrI ocn_wr_if;
-  Memory tlm_memory;  //CE
+  SRAMMemory tlm_memory;  //CE
   SRAMController sram_controller;  //PE
 
   bind sram_controller.memory_if {tlm_memory};
