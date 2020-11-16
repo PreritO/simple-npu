@@ -34,6 +34,7 @@
 #include "common/RoutingPacket.h"
 #include "common/RPCPacket.h"
 #include "common/routingdefs.h"
+#include <thread>
 
 HAL::HAL(
   sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):
@@ -44,6 +45,7 @@ HAL::HAL(
   JobRequestCounter = 0;
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_PortServiceThread, this)));
+  ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMThread, this)));
 }
 
 void HAL::init() {
@@ -215,39 +217,6 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   TlmType vaddr = VirtualAddress;
   // 2. Get Physical Address from the Virtual Address Space
   memdecode result = meminfo.decodevirtual(vaddr);
-    // The HAL will need to facilitate the SRAM cache.. which I don't agree with but let's see if it works first
-    // auto asynccopymessage = make_routing_packet
-    //       (name + core_number, destination_memory, std::make_shared<IPC_MEM>());
-    // asynccopymessage->payload->id(tlmreqcounter++);
-    // int asyncPktId = asynccopymessage->payload->id();
-    // asynccopymessage->payload->RequestType = "COPY";
-    // asynccopymessage->payload->tlm_address = result.physcialaddr;
-    // npulog(cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address  << endl;)
-    // cluster_local_switch_wr_if->put(asynccopymessage);
-    // // Waiting here for the same packet response frrom MCT TO HAL..
-    // wait(tlmvar_halevent);
-    // bool sameId = false;
-    // while (sameId == false) {
-    //   if (tlmvar_halreqs_buffer.find(asyncPktId) == tlmvar_halreqs_buffer.end()) {
-    //     wait(tlmvar_halevent);
-    //   } else {
-    //     sameId = true;
-    //   }
-    // }
-    // tlmvar_halmutex.lock();
-    // auto recv_p = tlmvar_halreqs_buffer.at(asyncPktId);
-    // tlmvar_halmutex.unlock();
-    // npulog(cout << "Got response from MCT to HAL, forwarding to SRAM.." << endl;)
-    // // forward this to the SRAM (hardcoding the SRAM as edram_0_mem rn..)
-    // auto srammessage = make_routing_packet
-    //     (name + core_number, "edram_0_mem", std::make_shared<IPC_MEM>());
-    //   srammessage->payload->RequestType = "COPY";
-    //   //npulog(cout << "Virtual Address: "<< vaddr << ", physical address: " << result.physcialaddr << ", recv_p tlm address: " << recv_p->tlm_address  << endl;)
-    //   srammessage->payload->tlm_address = vaddr;
-    //   cluster_local_switch_wr_if->put(srammessage);
-    // // Need to handle with changing the virtual address for this entry now.. 
-  //}
-
   // 3.2 Prepare Packet to send to MEM
   // 3.2.1 set the destination memory
   auto memmessage = make_routing_packet
@@ -256,7 +225,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   memmessage->payload->id(tlmreqcounter++);
   int pktid = memmessage->payload->id();
   memmessage->payload->RequestType = "READ";
-  memmessage->payload->tlm_address = result.physcialaddr;
+  memmessage->payload->tlm_address = vaddr;
   cluster_local_switch_wr_if->put(memmessage);
   wait(tlmvar_halevent);
   bool foundinmap = false;
@@ -287,49 +256,106 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   }
   //npulog(cout << "vaddr: " << vaddr << ", phys addr: " << result.physcialaddr << ", destination: " << destination_memory << ", bytes to allocate return: " << recv_p->bytes_to_allocate << endl;)
   if (recv_p->bytes_to_allocate == 0) {
-      // 3.2 Prepare Packet to send to MEM
-      // 3.2.1 set the destination memory
-      auto memmessage = make_routing_packet
-              (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
-      // 3.2.2 Set Packet ID
-      memmessage->payload->id(tlmreqcounter++);
-      int pktid = memmessage->payload->id();
-      memmessage->payload->RequestType = "READ";
-      memmessage->payload->tlm_address = result.physcialaddr;
-      npulog(cout << "Sending request to off-chip for tlm req: " << pktid << endl;)
-      cluster_local_switch_wr_if->put(memmessage);
-      wait(tlmvar_halevent);
-      bool foundinmap = false;
-      while (foundinmap == false) {
-        if (tlmvar_halreqs_buffer.find(pktid) == tlmvar_halreqs_buffer.end()) {
-          wait(tlmvar_halevent);
-        } else {
-          foundinmap = true;
-        }
-      }
-      tlmvar_halmutex.lock();
-      auto recv_p = tlmvar_halreqs_buffer.at(pktid);
-      tlmvar_halmutex.unlock();
+      // Let's not send this request to off-chip memory yet.. only send the request to fetch the contents
+      // to SRAM
 
-      if (recv_p->id() != pktid) {
-        npu_error("MAP ERROR HAL"+core_number+
-                  " for id: "+std::to_string(recv_p->id()));
-      }
-      if (recv_p->bytes_to_allocate != val_compare) {
-        npulog(
-          cout << "HAL Val compare: @addr" << VirtualAddress
-              << " -->" << recv_p->bytes_to_allocate
-              << " -- " << val_compare
-              << endl
-              << "Req for vaddr:" << memmessage->payload->tlm_address
-              << " got for:" << recv_p->tlm_address
-              << " reqcounteris:" << tlmreqcounter << endl;)
-      }
-    return recv_p->bytes_to_allocate;
+      // // 3.2 Prepare Packet to send to MEM
+      // // 3.2.1 set the destination memory
+      // auto memmessage = make_routing_packet
+      //         (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
+      // // 3.2.2 Set Packet ID
+      // memmessage->payload->id(tlmreqcounter++);
+      // int pktid = memmessage->payload->id();
+      // memmessage->payload->RequestType = "READ";
+      // memmessage->payload->tlm_address = result.physcialaddr;
+      // npulog(cout << "Sending request to off-chip for tlm req: " << pktid << endl;)
+      // cluster_local_switch_wr_if->put(memmessage);
+      // wait(tlmvar_halevent);
+      // bool foundinmap = false;
+      // while (foundinmap == false) {
+      //   if (tlmvar_halreqs_buffer.find(pktid) == tlmvar_halreqs_buffer.end()) {
+      //     wait(tlmvar_halevent);
+      //   } else {
+      //     foundinmap = true;
+      //   }
+      // }
+      // tlmvar_halmutex.lock();
+      // auto recv_p = tlmvar_halreqs_buffer.at(pktid);
+      // tlmvar_halmutex.unlock();
+
+      // if (recv_p->id() != pktid) {
+      //   npu_error("MAP ERROR HAL"+core_number+
+      //             " for id: "+std::to_string(recv_p->id()));
+      // }
+      // if (recv_p->bytes_to_allocate != val_compare) {
+      //   npulog(
+      //     cout << "HAL Val compare: @addr" << VirtualAddress
+      //         << " -->" << recv_p->bytes_to_allocate
+      //         << " -- " << val_compare
+      //         << endl
+      //         << "Req for vaddr:" << memmessage->payload->tlm_address
+      //         << " got for:" << recv_p->tlm_address
+      //         << " reqcounteris:" << tlmreqcounter << endl;)
+      // }
+
+      // Trigger an async fetch from DRAM to SRAM here to get contents, but not on the critical path.
+      //npulog(cout << "spawning a thread to fetch contents from DRAM to SRAM.."<< endl;)
+      //ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMThread, this, vaddr, vaddr, result.physcialaddr)));
+
+      npulog(debug, cout << "Sending HAL signal to do async fetch" << endl;)
+      auto asyncmessage = make_routing_packet
+         (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
+      asyncmessage->payload->id(recv_p->id());
+      asyncmessage->payload->tlm_address = result.physcialaddr;
+      asyncmessage->payload->bytes_to_allocate = vaddr;
+      tlmvar_halfetchmutex.lock();
+      //tlmvar_halreqs_fetch_buffer.emplace(recv_p->id(), asyncmessage->payload);
+      tlmvar_halreqs_fetch_buffer.push(asyncmessage->payload);
+      tlmvar_halfetchmutex.unlock();
+      fetch_.notify();
   }
   return recv_p->bytes_to_allocate;
 }
 
 void HAL::tlmwrite(int VirtualAddress, int data, std::size_t size) {
   npu_error("HALT-WriteMEM HAL Not implemented CORE");
+}
+
+void HAL::HAL_FetchFromMCTToSRAMThread() {
+  while(1) {
+    wait(fetch_);
+    tlmvar_halfetchmutex.lock();
+    auto asyncMessage = tlmvar_halreqs_fetch_buffer.front();
+    tlmvar_halreqs_fetch_buffer.pop();
+    tlmvar_halfetchmutex.unlock();
+    //npulog(cout << "fetch event occurred" << endl;)
+    auto asynccopymessage = make_routing_packet
+        (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
+    asynccopymessage->payload->id(tlmreqcounter++);
+    int asyncPktId = asynccopymessage->payload->id();
+    asynccopymessage->payload->RequestType = "COPY";
+    asynccopymessage->payload->tlm_address = asyncMessage->tlm_address;
+    npulog(cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address  << endl;)
+    cluster_local_switch_wr_if->put(asynccopymessage);
+    wait(tlmvar_halevent);
+    bool sameId = false;
+    while (sameId == false) {
+      if (tlmvar_halreqs_buffer.find(asyncPktId) == tlmvar_halreqs_buffer.end()) {
+        wait(tlmvar_halevent);
+      } else {
+        sameId = true;
+      }
+    }
+    tlmvar_halmutex.lock();
+    auto async_recv_p = tlmvar_halreqs_buffer.at(asyncPktId);
+    tlmvar_halmutex.unlock();
+    npulog(cout << "Got response from MCT to HAL, forwarding to SRAM.." << endl;)
+    // forward this to the SRAM (hardcoding the SRAM as edram_0_mem rn)
+    auto srammessage = make_routing_packet
+        (name + core_number, "edram_0_mem", std::make_shared<IPC_MEM>());
+      srammessage->payload->RequestType = "COPY";
+      srammessage->payload->bytes_to_allocate = async_recv_p->bytes_to_allocate;
+      srammessage->payload->tlm_address = asyncMessage->bytes_to_allocate;
+      cluster_local_switch_wr_if->put(srammessage);
+  }
 }

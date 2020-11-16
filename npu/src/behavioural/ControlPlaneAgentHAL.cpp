@@ -85,7 +85,8 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
         memmessage->id(3146);
         memmessage->RequestType = "WRITE";
         memmessage->bytes_to_allocate = data;
-        memmessage->tlm_address = result.physcialaddr;
+        // Changing this to just write to vaddr
+        memmessage->tlm_address = VirtualAddress;
         ocn_wr_if->write(make_routing_packet
                         (GetParent()->module_name(), pathtomem, memmessage));
       }

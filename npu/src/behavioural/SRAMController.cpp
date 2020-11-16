@@ -2,7 +2,7 @@
 #include <string>
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
-#define debug_tlm_sram_transaction 1
+#define debug_tlm_sram_transaction 0
  
 SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SRAMControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
@@ -61,40 +61,39 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
 
       // Check if Read or Write operation
       if (ipcpkt->RequestType.find("WRITE") != std::string::npos) {
-            // if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
-            //   npulog(cout << "Entry already exists in SRAM.." << endl;)
-            // } else {
-            //   mtx_tlmMap_.lock();
-            //   newTLMAdress++;
-            //   if(newTLMAdress >= mem_size) {
-            //     newTLMAdress = newTLMAdress-mem_size;
-            //   }
-            //   tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
-            //   mtx_tlmMap_.unlock();
-            //   tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
-            // }
-            tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
+            if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
+              newTLMAdress++;
+              if(newTLMAdress >= mem_size) {
+                newTLMAdress = newTLMAdress-mem_size;
+              }
+              mtx_tlmMap_.lock();
+              tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
+              mtx_tlmMap_.unlock();
+              tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
+              //npulog("write to sram, original vddr: " << ipcpkt->tlm_address << ", writing at addr: " << newTLMAdress << endl;)
+            }
+            ///tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
       } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
-        // // Perform Read operation
-        // npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
-        // // Before we conduct the read here, let's check if this entry was copied over earlier..
-        // TlmType mappedAddress = ipcpkt->tlm_address;
-        // if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
-        //     // use the new virtual address here..
-        //     mappedAddress = tlm_map.at(ipcpkt->tlm_address);
-        //     npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
-        // } else {
-        //   mappedAddress = ipcpkt->tlm_address;
-        //   npulog(cout << "Using unmapped version of the TLM address here. Original: " << mappedAddress << endl;)
-        // }
-        //ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
-        if(ipcpkt->tlm_address > mem_size) {
-          npulog(cout << "TLM Address in SRAM read is larger than mem_size for tlm req: " << ipcpkt->id() << endl;)
-          ipcpkt->bytes_to_allocate = 0;
+        // Perform Read operation
+        npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
+        // Before we conduct the read here, let's check if this entry was copied over earlier..
+        TlmType mappedAddress = ipcpkt->tlm_address;
+        if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
+            mappedAddress = tlm_map.at(ipcpkt->tlm_address);
+            npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
+            ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
         } else {
-          npulog(cout << "Reading from SRAM for tlm req: " << ipcpkt->id() << endl;)
-          ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+          //mappedAddress = ipcpkt->tlm_address;
+          npulog(cout << "This entry doesn't exist on SRAM.." << endl;)
+          ipcpkt->bytes_to_allocate = 0;
         }
+        // if(ipcpkt->tlm_address > mem_size) {
+        //   npulog(cout << "TLM Address in SRAM read is larger than mem_size for tlm req: " << ipcpkt->id() << endl;)
+        //   ipcpkt->bytes_to_allocate = 0;
+        // } else {
+        //   npulog(cout << "Reading from SRAM for tlm req: " << ipcpkt->id() << endl;)
+        //   ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        // }
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
@@ -115,16 +114,18 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
 
       } else if(ipcpkt->RequestType.find("COPY") != std::string::npos) {
           //npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is:" << endl;)
-          npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is: " << ipcpkt->tlm_address  << endl;)
+          //npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is: " << ipcpkt->tlm_address  << endl;)
           if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
-            mtx_tlmMap_.lock();
             newTLMAdress++;
+            // this is where we just overwrite the entries.. 
+            // instead, convert this to an LRU
             if(newTLMAdress >= mem_size) {
               newTLMAdress = newTLMAdress-mem_size;
             }
+            mtx_tlmMap_.lock();
             tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
             mtx_tlmMap_.unlock();
-            tlm_write(newTLMAdress, ipcpkt->tlm_data);
+            tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
           } else {
             npulog(cout << "entry exists already in tlmMap.." << endl;)
           }   
@@ -137,7 +138,6 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
                              <PacketDescriptor>(received_tr)) {
         auto pdpkt = received_pd->payload;
         std::string Requester = received_pd->source;
-        npulog(cout << "Pkt id: " << pdpkt->id() << ", Requester: " << Requester << endl;)
         if (received_pd->command.find("payload_request")
               != std::string::npos) {
           // 3. Pick data from memory

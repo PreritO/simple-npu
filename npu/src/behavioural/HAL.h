@@ -89,6 +89,16 @@ class HAL: public HALSIM {
 
  private:
   void HAL_PortServiceThread();
+  void HAL_FetchFromMCTToSRAMThread();
+
+  //! Event to monitor fetch status..
+  sc_event fetch_;
+  //std::map<std::size_t, std::shared_ptr<IPC_MEM>> tlmvar_halreqs_fetch_buffer;
+  //fifo queue to deal with async dram-sram fetch..
+  std::queue<std::shared_ptr<IPC_MEM>> tlmvar_halreqs_fetch_buffer;
+  //! Mutex to access tlmvar_halreqs_fetch_buffer
+  sc_mutex tlmvar_halfetchmutex;
+
   std::vector<sc_process_handle> ThreadHandles;
   //! Event to signal start (by manager) and end (by thread) of a thread
   sc_event evt_;
