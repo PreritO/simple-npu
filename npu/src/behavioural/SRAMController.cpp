@@ -2,7 +2,7 @@
 #include <string>
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
-// #define debug_tlm_mem_transaction 1
+#define debug_tlm_sram_transaction 1
  
 SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SRAMControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
@@ -75,19 +75,26 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
             // }
             tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
       } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
-        // Perform Read operation
-        npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
-        // Before we conduct the read here, let's check if this empty was copied over earlier..
-        TlmType mappedAddress = ipcpkt->tlm_address;
-        if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
-            // use the new virtual address here..
-            mappedAddress = tlm_map.at(ipcpkt->tlm_address);
-            npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
+        // // Perform Read operation
+        // npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
+        // // Before we conduct the read here, let's check if this entry was copied over earlier..
+        // TlmType mappedAddress = ipcpkt->tlm_address;
+        // if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
+        //     // use the new virtual address here..
+        //     mappedAddress = tlm_map.at(ipcpkt->tlm_address);
+        //     npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
+        // } else {
+        //   mappedAddress = ipcpkt->tlm_address;
+        //   npulog(cout << "Using unmapped version of the TLM address here. Original: " << mappedAddress << endl;)
+        // }
+        //ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
+        if(ipcpkt->tlm_address > mem_size) {
+          npulog(cout << "TLM Address in SRAM read is larger than mem_size for tlm req: " << ipcpkt->id() << endl;)
+          ipcpkt->bytes_to_allocate = 0;
         } else {
-          mappedAddress = ipcpkt->tlm_address;
-          npulog(cout << "Using unmapped version of the TLM address here. Original: " << ipcpkt->tlm_address << endl;)
+          npulog(cout << "Reading from SRAM for tlm req: " << ipcpkt->id() << endl;)
+          ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
         }
-        ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
@@ -321,8 +328,8 @@ SRAMController::tlm_write(tlm_data_type addr, tlm_data_type datatowrite) {
     SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
   }
 
-#if debug_tlm_mem_transaction
-  cout << modulename() << " transaction = { " << (cmd ? 'W' : 'R') << ", "
+#if debug_tlm_sram_transaction
+  cout << "SRAM:" << " transaction = { " << (cmd ? 'W' : 'R') << ", "
        << hex << addr << " } , data = " << hex << datatowrite << dec
        <<" at time " << sc_time_stamp() << " delay = " << delay << endl;
   // delay annotated onto the transport call
@@ -351,8 +358,8 @@ SRAMController::tlm_read(tlm_data_type addr) {
   if (trans->is_response_error()) {
     SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
   }
-#if debug_tlm_mem_transaction
-  cout << "&&*-      transaction = { " << (cmd ? 'W' : 'R') << ", "
+#if debug_tlm_sram_transaction
+  cout << "SRAM:" << " transaction = { " << (cmd ? 'W' : 'R') << ", "
        << hex << addr << " } , data = " << hex << read_val << dec
        <<" at time " << sc_time_stamp()<< " delay = " << delay << endl;
 #endif

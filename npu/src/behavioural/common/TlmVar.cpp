@@ -174,6 +174,7 @@ std::size_t tlmvar::read_mem(int addr, std::size_t val_compare) {
     std::size_t dataval
         = halport->get_interface(0)->tlmread(addr, data, size, val_compare);
     npulog(cout << "TlmVar TEUHAL read@ " << addr << " data:" << data << endl;)
+    npulog(cout << "TlmVar TEUHAL read@ " << addr << " dataval:" << dataval << endl;)
     return dataval;
     // End Brace if ApplicationLayer
   } else if (std::string(currentmodulename).find(ControlPlaneAgentName)
