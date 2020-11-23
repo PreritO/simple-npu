@@ -72,8 +72,8 @@ void MemoryManager::MemoryManagerThread(std::size_t thread_id) {
     auto received = unbox_routing_packet<IPC_MEM>(rd_if->get());
     auto ipcpkt = received->payload;
     if (ipcpkt->RequestType.find("ALLOCATE") !=std::string::npos) {
-      auto VirtualAddress
-           = Allocate(ipcpkt->bytes_to_allocate, ipcpkt->Allocation);
+      // auto VirtualAddress
+      //      = Allocate(ipcpkt->bytes_to_allocate, ipcpkt->Allocation);
 
       auto virtualaddr = Allocate(ipcpkt->bytes_to_allocate,
                                   ipcpkt->Allocation);
@@ -114,6 +114,7 @@ unsigned long MemoryManager::wordsizetoBytes(std::size_t wordsize) { //NOLINT
 uint64_t
 MemoryManager::Allocate(tlm_addr_ bytes_to_allocate,
                         std::string TypeofAllocation) {
+  //cout << "Allocating memory for type: " << TypeofAllocation << ", bytes to allocate: " << bytes_to_allocate << endl;
   auto result =  MemoryRegions[TypeofAllocation].allocate(bytes_to_allocate);
   // cout<< "Allocate - "<<TypeofAllocation<<endl;
   // MemoryRegions[TypeofAllocation].print();

@@ -122,6 +122,8 @@ build_p4_keys(const pfp::cp::InsertCommand * cmd) {
   std::vector<bm::MatchKeyParam> keys;
   for (const auto & key : cmd->get_keys()) {
     keys.push_back(to_p4_key(key.get()));
+    // cout << "key: " << to_p4_key(key.get()) << endl;
+    //cout << "key size: " << sizeof(to_p4_key(key.get()).key) << endl;
   }
   return keys;
 }
@@ -140,19 +142,24 @@ bm::ActionData build_p4_action_data(const pfp::cp::InsertCommand * cmd) {
 
 std::shared_ptr<pfp::cp::CommandResult>
 ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
-  cout << "Insert Command at ControlPlaneAgent" << endl;
-
+  cout << "Insert Command at ControlPlaneAgent into table: " << cmd->get_table_name() << endl;
   if (!in_transaction) {
     bm::entry_handle_t handle;
     // Insert the entry!
     auto p4 = P4::get("npu");
     p4->lock.write_lock();
+    setCurrentTableName(cmd->get_table_name());
+    // Note: contents of the key size are 32 bytes here, but size of MatchKeyParam = 80 bytes
+    // and size of Action Data is 24 bytes
+    ///cout << "sizeof(bm::MatchKeyParam): " << sizeof(bm::MatchKeyParam) << endl;
+    ///cout << "sizeof(bm::ActionData): " << sizeof(bm::ActionData) << endl;
+    //updateMemUsage((build_p4_keys(cmd).size() * sizeof(bm::MatchKeyParam)) + sizeof(bm::ActionData));
     bm::MatchErrorCode rc = p4->mt_add_entry(0,
           cmd->get_table_name(),  build_p4_keys(cmd),
           cmd->get_action().get_name(), build_p4_action_data(cmd),
           &handle);
     p4->lock.write_unlock();
-
+    //cout << "table :" << cmd->get_table_name() << ", size: " << getMemUsage(cmd->get_table_name()) << endl;
     return cmd->success_result(handle);
   } else {
     // Record the info of the insert for when we complete this transaction
@@ -160,7 +167,6 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
     transaction[table].push_back(
       std::static_pointer_cast<pfp::cp::InsertCommand>(
         cmd->shared_from_this()));
-
     return nullptr;
   }
 }

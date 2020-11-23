@@ -475,22 +475,33 @@
                 "ethernet",
                 "ipv4",
                 "tcp",
-                "udp",
-                "icmp"
+                "icmp",
+                "udp"
             ]
         }
     ],
     "meter_arrays": [],
     "actions": [
         {
-            "name": "_nop",
+            "name": "_drop",
             "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "_nop",
+            "id": 1,
             "runtime_data": [],
             "primitives": []
         },
         {
             "name": "doNATOperations",
-            "id": 1,
+            "id": 2,
             "runtime_data": [
                 {
                     "name": "etherAddr",
@@ -555,17 +566,6 @@
                     ]
                 }
             ]
-        },
-        {
-            "name": "_drop",
-            "id": 2,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
-                }
-            ]
         }
     ],
     "pipelines": [
@@ -577,7 +577,7 @@
                 {
                     "name": "nat",
                     "id": 0,
-                    "match_type": "lpm",
+                    "match_type": "exact",
                     "type": "simple",
                     "max_size": 16384,
                     "with_counters": false,
@@ -585,7 +585,7 @@
                     "support_timeout": false,
                     "key": [
                         {
-                            "match_type": "lpm",
+                            "match_type": "exact",
                             "target": [
                                 "ipv4",
                                 "srcAddr"
