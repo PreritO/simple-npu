@@ -207,7 +207,7 @@ table nat {
 	reads { 
 		//ethernet.srcAddr : exact;
 		// ethernet.dstAddr : exact;
-        ipv4.srcAddr : lpm;
+        ipv4.srcAddr : exact;
 		// ipv4.dstAddr : exact;
 	}
 	actions {

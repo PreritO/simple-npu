@@ -15,7 +15,7 @@ if __name__=="__main__":
 
         for i,j,k in itertools.product(range(0,32,2),range(0,32,2), range(0,32,2)):
             # if file has been successfully opened. 
-            text = "insert_entry nat " + "0.{0}.{1}.{2}/32".format(i,j,k) + " doNATOperations  00:00:00:00:00:03  10.0.0.1 2\n" 
+            text = "insert_entry nat " + "0.{0}.{1}.{2}".format(i,j,k) + " doNATOperations  00:00:00:00:00:03  10.0.0.1 2\n" 
             file_object.write(text) # write function to write text to file
         
         #Forward
