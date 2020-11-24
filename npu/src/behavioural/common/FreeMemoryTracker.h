@@ -73,8 +73,7 @@ class FreeMemoryTracker {
         if (bytes_to_allocate <= RegionSize) {
           auto AllocatedAddress = it->first;
           // it->first = AllocatedAddress+bytes_to_allocate;
-          it->first = AllocatedAddress+bytes_to_allocate;
-          cout << "Free bytes remaining: " << it->second - it->first << endl;
+          it->first = AllocatedAddress+1;
           // if (bytes_to_allocate == RegionSize) {
             // FreeRegions.erase(it);
           if (it->first >= it->second) {
