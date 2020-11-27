@@ -72,6 +72,8 @@ void ClusterScheduler::ClusterScheduler_PortServiceThread() {
         ReceivedaJob.notify();
       } else if (received_pd->source.find(core_prefix) != std::string::npos) {
         // Got a PD from a core, looks like its done with its job.
+        // Prerit TODO: Need to update here for the cluster scheduler to recirc the packet..
+        // because app layer would have modified to send packet even if core isn't complete..
         CompletedJobs[received_pd->source]++;
         increment_counter("Jobs_"+module_name()+"_"+received_pd->source);
 

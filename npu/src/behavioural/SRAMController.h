@@ -33,9 +33,6 @@ class SRAMController: public SRAMControllerSIM {
 
   std::string ExtractCorefromCluster(std::string);
 
-  void refer(int x);
-  void display();
-
  private:
   void SRAMControllerThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;

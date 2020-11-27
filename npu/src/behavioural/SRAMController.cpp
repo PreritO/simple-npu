@@ -4,7 +4,8 @@
 #include "common/routingdefs.h"
 #define debug_tlm_sram_transaction 0
  
-SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SRAMControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
+SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile)
+  :SRAMControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
   sc_object* parent_ = this->get_parent_object();
   std::string parentname = parent_->basename();
@@ -365,44 +366,4 @@ SRAMController::tlm_read(tlm_data_type addr) {
 #endif
   wait(delay);
   return read_val;
-}
-
-// Refers key x with in the LRU cache
-void SRAMController::refer(int x)
-{
-    // not present in cache
-    if (ma.find(x) == ma.end()) {
-        // cache is full
-        if (dq.size() == csize) {
-            // delete least recently used element
-            int last = dq.back();
- 
-            // Pops the last elmeent
-            dq.pop_back();
- 
-            // Erase the last
-            ma.erase(last);
-        }
-    }
- 
-    // present in cache
-    else
-        dq.erase(ma[x]);
- 
-    // update reference
-    dq.push_front(x);
-    ma[x] = dq.begin();
-}
-
-// Function to display contents of cache
-void SRAMController::display()
-{
- 
-    // Iterate in the deque and print
-    // all the elements in it
-    for (auto it = dq.begin(); it != dq.end();
-         it++)
-        cout << (*it) << " ";
- 
-    cout << endl;
 }

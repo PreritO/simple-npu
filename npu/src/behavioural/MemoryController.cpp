@@ -32,7 +32,7 @@
 #include <string>
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
-#define debug_tlm_mem_transaction 1
+#define debug_tlm_mem_transaction 0
 MemoryController::MemoryController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):MemoryControllerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
   // Search in MemoryMap for itself and get its own parameters
   sc_object* parent_ = this->get_parent_object();

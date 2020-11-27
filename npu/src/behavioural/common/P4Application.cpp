@@ -57,6 +57,7 @@ Packet& P4Application(uint32_t &counter,
   static auto ingress = p4->get_pipeline("ingress");
   static auto egress  = p4->get_pipeline("egress");
   auto p4_packet = np.header().get();
+  cout << "Processing Packet: " << p4_packet->get_packet_id()<< endl;
   p4->lock.read_lock();
   ingress->apply(p4_packet);
   // TODO(gordon) if( ! np.drop()){

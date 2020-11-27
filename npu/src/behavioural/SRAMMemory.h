@@ -49,6 +49,7 @@ public SRAMMemorySIM {
             // return m[key];
             //memcpy(ptr, &mem[adr], len);
             ptr = mem[adr];
+        outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
       }
     } else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
       //memcpy(&mem[adr], ptr, len);
@@ -70,6 +71,7 @@ public SRAMMemorySIM {
         dq.push_front(adr);
         //memcpy(mem[adr], ptr, len);
         mem[adr] = ptr;
+      outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
     }
     // response status to indicate successful completion
     trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -83,6 +85,8 @@ public SRAMMemorySIM {
   sc_time WR_LATENCY;
   std::unordered_map<sc_dt::uint64, unsigned char*> mem;
   std::deque<sc_dt::uint64> dq;
+  std::ofstream outlog;
+
 };
 
 /*
@@ -91,7 +95,8 @@ public SRAMMemorySIM {
 template<typename T>
 SRAMMemory<T>::SRAMMemory
   (sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile)
-  : SRAMMemorySIM(nm, parent, configfile) {
+  : SRAMMemorySIM(nm, parent, configfile),
+  outlog(OUTPUTDIR+"SRAMMemoryTrace.csv") {
   int rdlt = GetParameter("ReadLatency").template get<int>();
   int wrlt = GetParameter("WriteLatency").template get<int>();
 
