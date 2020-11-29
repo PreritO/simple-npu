@@ -190,19 +190,20 @@ T HashTrie<T>::exactPrefixMatch(BitString iKey, unsigned int iHashKey, HashTable
     }
     if (iEntry->getFlag()) {
         if (BitString::intToBitString(iEntry->getKeyBitmap(), iEntry->getKeyLength()) == iKey) {
-            cout << "Get Val here.." << endl;
+            //cout << "This is a k/v lookup, returning value action: iEntry->getValue()" << endl;
             return iEntry->getValue();
         } else {
             if (iPos == 0) {
                 HashTableEntry<T> *wSubtrie = iEntry->getPtr();
                 int wIndex = extract(iHashKey, iPos, STRIDE);
                 if (extract(iEntry->getKeyBitmap(), wIndex, 1) == 0) {
-                    cout << "Returns Default Action here.." << endl;
+                    //cout << "This is a k/v lookup, returning default action.." << endl;
                     return mDefaultAction;
                 } else {
                     return exactPrefixMatch(iKey, iHashKey, &wSubtrie[popcount(extract(iEntry->getKeyBitmap(), 0, wIndex + 1)) - 1], iPos + STRIDE);
                 }
             } else {
+                //cout << "This is a k/v lookup, returning default action.." << endl;
                 return mDefaultAction;
             }
         }

@@ -73,7 +73,7 @@ class FreeMemoryTracker {
         if (bytes_to_allocate <= RegionSize) {
           auto AllocatedAddress = it->first;
           // it->first = AllocatedAddress+bytes_to_allocate;
-          it->first = AllocatedAddress+1;
+          it->first = AllocatedAddress+(bytes_to_allocate/32);
           // if (bytes_to_allocate == RegionSize) {
             // FreeRegions.erase(it);
           if (it->first >= it->second) {

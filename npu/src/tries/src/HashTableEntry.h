@@ -167,14 +167,19 @@ HashTableEntry<T>::~HashTableEntry() {
 template <class T>
 bool HashTableEntry<T>::getFlag() const {
   std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr);
-  // return static_cast<bool>(val);
+  //return static_cast<bool>(val);
   return mEntryTypeFlag;
 }
 
 template <class T>
 unsigned int HashTableEntry<T>::getKeyBitmap() const {
   std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
-  return mKey_Bitmap;
+  if(static_cast<unsigned int>(val) != mKey_Bitmap) {
+    //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
+    ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;
+    return mKey_Bitmap;
+  }
+  //return mKey_Bitmap;
   return static_cast<unsigned int>(val);
 }
 
@@ -194,7 +199,7 @@ template <class T>
 short HashTableEntry<T>::getKeyLength() const {
   std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+4);
   return mKeyLength;
-  return static_cast<short>(val);
+  //return static_cast<short>(val);
 }
 
 template <class T>
@@ -219,7 +224,10 @@ template <class T>
 void HashTableEntry<T>::setKeyBitmap(int iKey_Bit) {
     mKey_Bitmap = iKey_Bit;
     tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1);
-
+    // std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
+    // if(val != static_cast<std::size_t>(iKey_Bit)) {
+    //   cout << "setKeyBitmap: Result's don't match" << endl;
+    // }
 }
 
 template <class T>
@@ -234,7 +242,6 @@ void HashTableEntry<T>::setPtr(HashTableEntry<T>* iPtr, int iSize) {
     mPtr = iPtr;
     mVal_PtrSize = iSize;
     tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+3);
-
 }
 
 template <class T>
