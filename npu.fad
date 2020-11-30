@@ -195,7 +195,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   Splitter splitter;
   Parser parser("Parser.cfg");
   Scheduler scheduler("Scheduler.cfg");
-  Cluster cluster("Cluster.cfg")[16];
+  Cluster cluster("Cluster.cfg")[1];
   ReorderController roc;
   TrafficManager tm("TrafficManager.cfg");
   Deparser deparser;
@@ -236,24 +236,12 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind roc.ocn_wr_if                {ocn10_rd_channel[1]};
 
   // --- ocn_20 ---
-  Queue ocn20_rd_channel[5];
-  Queue ocn20_wr_channel[5];
+  Queue ocn20_rd_channel[1];
+  Queue ocn20_wr_channel[1];
 
-  //ocn_20                          //"ocn_10", "cluster[6]", "cluster[4]", "ocn_21", cluster[8]",  "cluster[12]
-  bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0],ocn20_rd_channel[1],ocn20_rd_channel[2], ocn20_rd_channel[3], ocn20_rd_channel[4]};
-  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0],ocn20_wr_channel[1],ocn20_wr_channel[2], ocn20_wr_channel[3], ocn20_wr_channel[4]};
-
-  bind cluster[6].ocn_wr_if         {ocn20_rd_channel[0]};
-  bind cluster[6].ocn_rd_if         {ocn20_wr_channel[0]};
-
-  bind cluster[4].ocn_wr_if         {ocn20_rd_channel[1]};
-  bind cluster[4].ocn_rd_if         {ocn20_wr_channel[1]};
-
-  bind cluster[8].ocn_wr_if         {ocn20_rd_channel[3]};
-  bind cluster[8].ocn_rd_if         {ocn20_wr_channel[3]};
-
-  bind cluster[12].ocn_wr_if         {ocn20_rd_channel[4]};
-  bind cluster[12].ocn_rd_if         {ocn20_wr_channel[4]};
+  //ocn_20                          //"ocn_10", "ocn_21"
+  bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0]};
+  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0]};
 
   // --- ocn_01 ---
   Queue ocn01_rd_channel[4];
@@ -281,24 +269,16 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind scheduler.ocn_rd_if          {ocn11_wr_channel[0]};
 
   // --- ocn_21 ---
-  Queue ocn21_rd_channel[5];
-  Queue ocn21_wr_channel[5];
+  Queue ocn21_rd_channel[2];
+  Queue ocn21_wr_channel[2];
 
-  //ocn_21                          //"ocn_11", "ocn_20", "cluster[0]", "cluster[1]", "ocn_22", "cluster[10]", "cluster[13]"
-  bind ocn_21.ocn_rd_if             {ocn11_wr_channel[1],ocn20_wr_channel[2],ocn21_rd_channel[0],ocn21_rd_channel[1],ocn21_rd_channel[2], ocn21_rd_channel[3], ocn21_rd_channel[4]};
-  bind ocn_21.ocn_wr_if             {ocn11_rd_channel[1],ocn20_rd_channel[2],ocn21_wr_channel[0],ocn21_wr_channel[1],ocn21_wr_channel[2], ocn21_wr_channel[3], ocn21_wr_channel[4]};
+  //ocn_21                          //"ocn_11", "ocn_20", "cluster[0]", "ocn_22"
+  bind ocn_21.ocn_rd_if             {ocn11_wr_channel[1],ocn20_wr_channel[0],ocn21_rd_channel[0],ocn21_rd_channel[1]};
+  bind ocn_21.ocn_wr_if             {ocn11_rd_channel[1],ocn20_rd_channel[0],ocn21_wr_channel[0],ocn21_wr_channel[1]};
 
   bind cluster[0].ocn_wr_if         {ocn21_rd_channel[0]};
   bind cluster[0].ocn_rd_if         {ocn21_wr_channel[0]};
 
-  bind cluster[1].ocn_wr_if         {ocn21_rd_channel[1]};
-  bind cluster[1].ocn_rd_if         {ocn21_wr_channel[1]};
-
-  bind cluster[10].ocn_wr_if         {ocn21_rd_channel[3]};
-  bind cluster[10].ocn_rd_if         {ocn21_wr_channel[3]};
-
-  bind cluster[13].ocn_wr_if         {ocn21_rd_channel[4]};
-  bind cluster[13].ocn_rd_if         {ocn21_wr_channel[4]};
 
   // --- ocn_02 ---
   Queue ocn02_rd_channel[4];
@@ -318,42 +298,19 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind mct_0_mem.ocn_rd_if          {ocn02_wr_channel[2]};
 
   //  --- ocn_12 ---
-  Queue ocn12_rd_channel[5];
-  Queue ocn12_wr_channel[5];
-  //ocn_12                          //"ocn_02", "ocn_11", "cluster[2]", "cluster[3]", "ocn_22", "cluster[11]", "cluster[14]"
-  bind ocn_12.ocn_rd_if             {ocn02_wr_channel[3],ocn11_wr_channel[2],ocn12_rd_channel[0],ocn12_rd_channel[1],ocn12_rd_channel[2], ocn12_rd_channel[3], ocn12_rd_channel[4]};
-  bind ocn_12.ocn_wr_if             {ocn02_rd_channel[3],ocn11_rd_channel[2],ocn12_wr_channel[0],ocn12_wr_channel[1],ocn12_wr_channel[2], ocn12_wr_channel[3], ocn12_wr_channel[4]};
-
-  bind cluster[2].ocn_wr_if         {ocn12_rd_channel[0]};
-  bind cluster[2].ocn_rd_if         {ocn12_wr_channel[0]};
-
-  bind cluster[3].ocn_wr_if         {ocn12_rd_channel[1]};
-  bind cluster[3].ocn_rd_if         {ocn12_wr_channel[1]};
-
-  bind cluster[11].ocn_wr_if         {ocn12_rd_channel[3]};
-  bind cluster[11].ocn_rd_if         {ocn12_wr_channel[3]};
-
-  bind cluster[14].ocn_wr_if         {ocn12_rd_channel[4]};
-  bind cluster[14].ocn_rd_if         {ocn12_wr_channel[4]};
+  Queue ocn12_rd_channel[1];
+  Queue ocn12_wr_channel[1];
+  //ocn_12                          //"ocn_02", "ocn_11", "ocn_22", 
+  bind ocn_12.ocn_rd_if             {ocn02_wr_channel[3],ocn11_wr_channel[2],ocn12_rd_channel[0]};
+  bind ocn_12.ocn_wr_if             {ocn02_rd_channel[3],ocn11_rd_channel[2],ocn12_wr_channel[0]};
 
   //  --- ocn_22 ---
-  Queue ocn22_rd_channel[4];
-  Queue ocn22_wr_channel[4];
-  //ocn_22                          //"ocn_12", "ocn_21", "cluster[5]", "cluster[7]", "cluster[9]", "cluster[15]"
-  bind ocn_22.ocn_rd_if             {ocn12_wr_channel[2],ocn21_wr_channel[2],ocn22_rd_channel[0],ocn22_rd_channel[1], ocn22_rd_channel[2], ocn22_rd_channel[3]};
-  bind ocn_22.ocn_wr_if             {ocn12_rd_channel[2],ocn21_rd_channel[2],ocn22_wr_channel[0],ocn22_wr_channel[1], ocn22_wr_channel[2], ocn22_wr_channel[3]};
+  Queue ocn22_rd_channel[0];
+  Queue ocn22_wr_channel[0];
+  //ocn_22                          //"ocn_12", "ocn_21",
+  bind ocn_22.ocn_rd_if             {ocn12_wr_channel[0],ocn21_wr_channel[1]};
+  bind ocn_22.ocn_wr_if             {ocn12_rd_channel[0],ocn21_rd_channel[1]};
 
-  bind cluster[5].ocn_wr_if         {ocn22_rd_channel[0]};
-  bind cluster[5].ocn_rd_if         {ocn22_wr_channel[0]};
-
-  bind cluster[7].ocn_wr_if         {ocn22_rd_channel[1]};
-  bind cluster[7].ocn_rd_if         {ocn22_wr_channel[1]};
-
-  bind cluster[9].ocn_wr_if         {ocn22_rd_channel[2]};
-  bind cluster[9].ocn_rd_if         {ocn22_wr_channel[2]};
-
-  bind cluster[15].ocn_wr_if         {ocn22_rd_channel[3]};
-  bind cluster[15].ocn_rd_if         {ocn22_wr_channel[3]};
 
   bind splitter.ingress             {ingress};
   bind deparser.egress              {egress};
