@@ -24,7 +24,7 @@ class SRAMController: public SRAMControllerSIM {
  public:
   void init();
 
-  typedef  int tlm_data_type;
+  typedef int tlm_data_type;
   void tlm_write(tlm_data_type addr, tlm_data_type datatowrite);
   tlm_data_type tlm_read(tlm_data_type addr);
   typedef std::vector<uint8_t> packet_data_type;
@@ -40,10 +40,6 @@ class SRAMController: public SRAMControllerSIM {
   std::string memname_;
   std::string setsourcetome_;
   sc_mutex mtx_memory_;
-  // Memory Map to map virtual address to TLM write..
-  std::map<TlmType, TlmType> tlm_map;
-  sc_mutex mtx_tlmMap_;
-  TlmType newTLMAdress;
   //! Memory Map for Host Allocation
   std::map<std::size_t, std::shared_ptr<Packet>> memory_;
   //! Internal representation of memory

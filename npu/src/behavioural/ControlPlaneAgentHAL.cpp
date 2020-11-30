@@ -68,69 +68,104 @@ ControlPlaneAgentHAL::tlmallocate(int BytestoAllocate) {
 void
 ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
   // 1. Find Where does this write go ?
+  // memdecode result = meminfo.decodevirtual(VirtualAddress);
+  // // 2. Write to mem + shadow edmems if decode return addr lies in edram region
+  // if (result.mappingdecode) {
+  //   //npulog(cout << "On-chip Control Plane Write" << endl;)
+  //   std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
+  //   auto Mapping = meminfo.AddressMapping[AddressMapKey];
+  //   int totalclusters = SimulationParameters["clusters"].get<int>();
+  //   for (int clusternum = 0 ; clusternum < totalclusters; clusternum++) {
+  //     std::string Clusterpath = cluster_prefix;
+  //     Clusterpath = Clusterpath+"["+std::to_string(clusternum)+"]";
+  //     for (json::iterator it = Mapping.begin(); it != Mapping.end(); ++it) {
+  //       std::string MemoryName = it.value();
+  //       std::string pathtomem = Clusterpath+"."+MemoryName;
+  //       auto memmessage = std::make_shared<IPC_MEM>();
+  //       memmessage->id(3146);
+  //       memmessage->RequestType = "WRITE";
+  //       memmessage->bytes_to_allocate = data;
+  //       // Changing this to just write to vaddr
+  //       memmessage->tlm_address = VirtualAddress;
+  //       ocn_wr_if->write(make_routing_packet
+  //                       (GetParent()->module_name(), pathtomem, memmessage));
+  //     }
+  //   }
+  // } else {
+  //   npulog(cout << "Off-chip Control Plane Write" << endl;)
+  //   auto memmessage = std::make_shared<IPC_MEM>();
+  //   memmessage->id(3146);
+  //   memmessage->RequestType = "WRITE";
+  //   memmessage->bytes_to_allocate = data;
+  //   memmessage->tlm_address = result.physcialaddr;
+  //   ocn_wr_if->write(make_routing_packet
+  //                   (GetParent()->module_name(), result.mempath, memmessage));
+  // }
+  // // 3. Return Control
+  // return;
+
+  // Let's write everything to off-chip by default here and then 
+  // just use the SRAM as an LRU/FIFO cache when the packets do a TLM Read
+  int newVirtualAddress = VirtualAddress;
   memdecode result = meminfo.decodevirtual(VirtualAddress);
-  // 2. Write to mem + shadow edmems if decode return addr lies in edram region
   if (result.mappingdecode) {
-    //npulog(cout << "On-chip Control Plane Write" << endl;)
-    std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
-    auto Mapping = meminfo.AddressMapping[AddressMapKey];
-    int totalclusters = SimulationParameters["clusters"].get<int>();
-    for (int clusternum = 0 ; clusternum < totalclusters; clusternum++) {
-      std::string Clusterpath = cluster_prefix;
-      Clusterpath = Clusterpath+"["+std::to_string(clusternum)+"]";
-      for (json::iterator it = Mapping.begin(); it != Mapping.end(); ++it) {
-        std::string MemoryName = it.value();
-        std::string pathtomem = Clusterpath+"."+MemoryName;
-        auto memmessage = std::make_shared<IPC_MEM>();
-        memmessage->id(3146);
-        memmessage->RequestType = "WRITE";
-        memmessage->bytes_to_allocate = data;
-        // Changing this to just write to vaddr
-        memmessage->tlm_address = VirtualAddress;
-        ocn_wr_if->write(make_routing_packet
-                        (GetParent()->module_name(), pathtomem, memmessage));
-      }
-    }
-  } else {
-    npulog(cout << "Off-chip Control Plane Write" << endl;)
-    auto memmessage = std::make_shared<IPC_MEM>();
-    memmessage->id(3146);
-    memmessage->RequestType = "WRITE";
-    memmessage->bytes_to_allocate = data;
-    memmessage->tlm_address = result.physcialaddr;
-    ocn_wr_if->write(make_routing_packet
-                    (GetParent()->module_name(), result.mempath, memmessage));
-  }
-  // 3. Return Control
+    uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
+    newVirtualAddress+=AddressMapSize;
+  } 
+  auto memmessage = std::make_shared<IPC_MEM>();
+  memmessage->id(3146);
+  memmessage->RequestType = "WRITE";
+  memmessage->bytes_to_allocate = data;
+  memmessage->tlm_address = newVirtualAddress;
+  ocn_wr_if->write(make_routing_packet
+                     (GetParent()->module_name(), "mct_0_mem", memmessage));
   return;
 }
 
 ControlPlaneAgentHAL::TlmType
 ControlPlaneAgentHAL::tlmread(int VirtualAddress) {
-  memdecode result = meminfo.decodevirtual(VirtualAddress);
-  std::string pathtomem = "INVALID-rdcp";
-  if (result.mappingdecode) {
-    std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
-    auto Mapping = meminfo.AddressMapping[AddressMapKey];
-    std::string Clusterpath = cluster_prefix;
-    Clusterpath = Clusterpath+"["+std::to_string(0)+"]";
-    std::string firstmem = "INVALID-READCP";
-    for (json::iterator it = Mapping.begin(); it != Mapping.end(); ++it) {
-      firstmem = it.value();
-      break;
-    }
-    pathtomem = Clusterpath + "." + firstmem;
-  } else {
-    pathtomem = result.mempath;
-  }
+  // memdecode result = meminfo.decodevirtual(VirtualAddress);
+  // std::string pathtomem = "INVALID-rdcp";
+  // if (result.mappingdecode) {
+  //   std::string AddressMapKey = meminfo.Mapping_Key(result.memname);
+  //   auto Mapping = meminfo.AddressMapping[AddressMapKey];
+  //   std::string Clusterpath = cluster_prefix;
+  //   Clusterpath = Clusterpath+"["+std::to_string(0)+"]";
+  //   std::string firstmem = "INVALID-READCP";
+  //   for (json::iterator it = Mapping.begin(); it != Mapping.end(); ++it) {
+  //     firstmem = it.value();
+  //     break;
+  //   }
+  //   pathtomem = Clusterpath + "." + firstmem;
+  // } else {
+  //   pathtomem = result.mempath;
+  // }
 
+  // auto memmessage = std::make_shared<IPC_MEM>();
+  // memmessage->id(3148);
+  // memmessage->RequestType = "READ";
+  // memmessage->tlm_address = result.physcialaddr;
+  // ocn_wr_if->put(make_routing_packet
+  //               (GetParent()->module_name(), pathtomem, memmessage));
+
+  // auto received_tr = unbox_routing_packet<IPC_MEM>(ocn_rd_if->get());
+  // auto ipcpkt = received_tr->payload;
+  // return ipcpkt->bytes_to_allocate;
+
+  // Let's assume that cp_agent ever only reads/writes from off-chip 
+  // memory to limit cache pollution before packets flow 
+  int newVirtualAddress = VirtualAddress;
+  memdecode result = meminfo.decodevirtual(VirtualAddress);
+  if (result.mappingdecode) {
+    uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
+    newVirtualAddress+=AddressMapSize;
+  } 
   auto memmessage = std::make_shared<IPC_MEM>();
   memmessage->id(3148);
   memmessage->RequestType = "READ";
-  memmessage->tlm_address = result.physcialaddr;
-  ocn_wr_if->put(make_routing_packet
-                (GetParent()->module_name(), pathtomem, memmessage));
-
+  memmessage->tlm_address = newVirtualAddress;
+  ocn_wr_if->write(make_routing_packet
+                     (GetParent()->module_name(), "mct_0_mem", memmessage));
   auto received_tr = unbox_routing_packet<IPC_MEM>(ocn_rd_if->get());
   auto ipcpkt = received_tr->payload;
   return ipcpkt->bytes_to_allocate;

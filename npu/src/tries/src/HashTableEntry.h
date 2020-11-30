@@ -166,14 +166,14 @@ HashTableEntry<T>::~HashTableEntry() {
 
 template <class T>
 bool HashTableEntry<T>::getFlag() const {
-  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr);
+  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 0);
   //return static_cast<bool>(val);
   return mEntryTypeFlag;
 }
 
 template <class T>
 unsigned int HashTableEntry<T>::getKeyBitmap() const {
-  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
+  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 1);
   if(static_cast<unsigned int>(val) != mKey_Bitmap) {
     //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
     ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;
@@ -185,19 +185,19 @@ unsigned int HashTableEntry<T>::getKeyBitmap() const {
 
 template <class T>
 T HashTableEntry<T>::getValue() const {
-  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+2);
+  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+2, 0);
   return mValue;
 }
 
 template <class T>
 HashTableEntry<T>* HashTableEntry<T>::getPtr() const {
-  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+3);
+  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+3, 0);
   return mPtr;
 }
 
 template <class T>
 short HashTableEntry<T>::getKeyLength() const {
-  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+4);
+  std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+4, 0);
   return mKeyLength;
   //return static_cast<short>(val);
 }

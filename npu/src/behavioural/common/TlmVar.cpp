@@ -147,7 +147,7 @@ void tlmvar::allocate(std::size_t data_to_allocate, int addr) {
   }
 }
 
-std::size_t tlmvar::read_mem(int addr, std::size_t val_compare) {
+std::size_t tlmvar::read_mem(int addr, bool key_read, std::size_t val_compare) {
   sc_process_handle this_process = sc_get_current_process_handle();
   sc_object* current_scmodule = this_process.get_parent_object();
   const char* currentmodulename = current_scmodule->basename();
@@ -172,9 +172,8 @@ std::size_t tlmvar::read_mem(int addr, std::size_t val_compare) {
     int data = 0xDEADBEEF;
     std::size_t size = 0;
     std::size_t dataval
-        = halport->get_interface(0)->tlmread(addr, data, size, val_compare);
-    npulog(cout << "TlmVar TEUHAL read@ " << addr << " data:" << data << endl;)
-    //npulog(cout << "TlmVar TEUHAL read@ " << addr << " dataval:" << dataval << endl;)
+        = halport->get_interface(0)->tlmread(addr, data, size, key_read, val_compare);
+    npulog(cout << "TlmVar TEUHAL read@ " << addr << " dataval:" << dataval << endl;)
     return dataval;
     // End Brace if ApplicationLayer
   } else if (std::string(currentmodulename).find(ControlPlaneAgentName)

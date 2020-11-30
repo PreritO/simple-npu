@@ -79,7 +79,7 @@ class HAL: public HALSIM {
    * @return                value @ addr
    */
   virtual std::size_t tlmread(TlmType VirtualAddress, TlmType data,
-      std::size_t size, std::size_t val_compare = 0);
+      std::size_t size, bool key_read, std::size_t val_compare = 0);
   /**
    * * Prints out Port Bindings to HAL via HALInterface
    * @param port_        port

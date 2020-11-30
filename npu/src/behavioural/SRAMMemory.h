@@ -5,6 +5,7 @@
 #include <vector>
 #include "../structural/SRAMMemorySIM.h"
 #include "MemI.h"
+#include "lru_cache.hpp"
 
 // #define debug_tlm_mem_transaction 1
 template<typename T>
@@ -24,54 +25,29 @@ public SRAMMemorySIM {
     unsigned int     len = trans.get_data_length();
     unsigned char*   byt = trans.get_byte_enable_ptr();
     unsigned int     wid = trans.get_streaming_width();
-    // check address range
-    if (adr >= static_cast<sc_dt::uint64>(SIZE) ||
-        byt != 0 || len > 4 || wid < len) {
-      std::cerr << "tlm_memory " << modulename
-            << " Target does not support given mem payload transaction addr:"
-            <<adr << endl;
-      std::cerr << "tlm_memory - You probably have an out of range address"
-            <<endl;
-      SC_REPORT_ERROR("TLM-2", "Target does not support given generic payload transaction");  // NOLINT(whitespace/line_length)
-      sc_stop();
-    }
+    // check address range. Commenting this out because SRAM Memory here is no longer a 
+    // continuous vector, it's not an unordered map where map key = address and map value = ptr - PO
+
+    // if (adr >= static_cast<sc_dt::uint64>(SIZE) ||
+    //     byt != 0 || len > 4 || wid < len) {
+    //   std::cerr << "tlm_memory " << modulename
+    //         << " Target does not support given mem payload transaction addr:"
+    //         <<adr << endl;
+    //   std::cerr << "tlm_memory - You probably have an out of range address"
+    //         <<endl;
+    //   SC_REPORT_ERROR("TLM-2", "Target does not support given generic payload transaction");  // NOLINT(whitespace/line_length)
+    //   sc_stop();
+    // }
     // Read or Write depending upon command.
     if ( cmd == tlm::TLM_READ_COMMAND ) {
-      //memcpy(ptr, &mem[adr], len);
-      if (mem.find(adr) != mem.end()) {
-          std::deque<sc_dt::uint64>::iterator it = dq.begin();
-            while (*it != adr) {
-                it++;
-            }
-            // update queue: update it to most recent used value
-            dq.erase(it);
-            dq.push_front(adr);
-            // return m[key];
-            //memcpy(ptr, &mem[adr], len);
-            ptr = mem[adr];
-        outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
+      if(cache.exists(adr)) {
+        ptr = cache.get(adr);
       }
+        //outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
     } else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
-      //memcpy(&mem[adr], ptr, len);
-      if(mem.find(adr) == mem.end()) {
-          // check if cache is full
-          if (SIZE == dq.size()) {
-              sc_dt::uint64 last = dq.back();
-              dq.pop_back();
-              mem.erase(last);
-          } 
-        } else {
-            std::deque<sc_dt::uint64>::iterator it = dq.begin();
-            while (*it != adr) {
-                it++;
-            }
-            dq.erase(it);
-            mem.erase(adr);
-        }
-        dq.push_front(adr);
-        //memcpy(mem[adr], ptr, len);
-        mem[adr] = ptr;
-      outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
+      cout << "cache size: " << cache.size() << endl;
+      cache.put(adr, ptr);
+      //outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
     }
     // response status to indicate successful completion
     trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -83,10 +59,10 @@ public SRAMMemorySIM {
   uint64_t SIZE;
   sc_time RD_LATENCY;
   sc_time WR_LATENCY;
-  std::unordered_map<sc_dt::uint64, unsigned char*> mem;
-  std::deque<sc_dt::uint64> dq;
-  std::ofstream outlog;
-
+  //std::unordered_map<sc_dt::uint64, unsigned char*> mem;
+  //std::deque<sc_dt::uint64> dq;
+  //std::ofstream outlog;
+  cache::lru_cache<sc_dt::uint64, unsigned char*> cache;
 };
 
 /*
@@ -95,8 +71,7 @@ public SRAMMemorySIM {
 template<typename T>
 SRAMMemory<T>::SRAMMemory
   (sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile)
-  : SRAMMemorySIM(nm, parent, configfile),
-  outlog(OUTPUTDIR+"SRAMMemoryTrace.csv") {
+  : SRAMMemorySIM(nm, parent, configfile) {
   int rdlt = GetParameter("ReadLatency").template get<int>();
   int wrlt = GetParameter("WriteLatency").template get<int>();
 
@@ -107,11 +82,10 @@ SRAMMemory<T>::SRAMMemory
   WR_LATENCY = wr_lat;
   SIZE = mem_size;
   // Initialize memory with random data
-//   for (int i = 0; i < SIZE; i++) {
-//     mem.push_back(0xAA000000);
-//   }
-  mem.clear();
-  dq.clear();
+  //   for (int i = 0; i < SIZE; i++) {
+  //     mem.push_back(0xAA000000);
+  //   }
+  cache = cache::lru_cache<sc_dt::uint64, unsigned char*>(SIZE);
 }
 
 #endif  // BEHAVIOURAL_MEMORY_H_

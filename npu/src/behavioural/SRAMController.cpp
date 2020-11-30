@@ -18,7 +18,6 @@ SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, 
   mem_size = GetParameter("Capacity").template get<int>();
   RD_LATENCY = rd_lat;
   WR_LATENCY = wr_lat;
-  newTLMAdress = 0;
 
   std::string memname = modulename;
   memname_ = memname;
@@ -60,34 +59,29 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
       std::string ipcpkt_SentFrom = mem_received->source;
       std::string ipcpkt_SentTo = mem_received->destination;
 
-      // Check if Read or Write operation
-      if (ipcpkt->RequestType.find("WRITE") != std::string::npos) {
-            if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
-              newTLMAdress++;
-              if(newTLMAdress >= mem_size) {
-                newTLMAdress = newTLMAdress-mem_size;
-              }
-              mtx_tlmMap_.lock();
-              tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
-              mtx_tlmMap_.unlock();
-              tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
-              //npulog("write to sram, original vddr: " << ipcpkt->tlm_address << ", writing at addr: " << newTLMAdress << endl;)
-            }
-            ///tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
-      } else if (ipcpkt->RequestType.find("READ") != std::string::npos) {
+      // Check if Read or Write operation.
+      // Updated so that SRAM doesn't actually handle a write operation because all writes from cpagent are being done
+      // to off-chip memory (hence bypassing sram) AND when wrriting from off-chip to SRAM, that is being done bia "COPY"
+      // RequestType - PO
+
+      // if (ipcpkt->RequestType.find("WRITE") != std::string::npos) {
+      //       if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
+      //         newTLMAdress++;
+      //         if(newTLMAdress >= mem_size) {
+      //           newTLMAdress = newTLMAdress-mem_size;
+      //         }
+      //         mtx_tlmMap_.lock();
+      //         tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
+      //         mtx_tlmMap_.unlock();
+      //         tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
+      //         //npulog("write to sram, original vddr: " << ipcpkt->tlm_address << ", writing at addr: " << newTLMAdress << endl;)
+      //       }
+      //       ///tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);
+      // } else 
+      if (ipcpkt->RequestType.find("READ") != std::string::npos) {
         // Perform Read operation
         npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
-        // Before we conduct the read here, let's check if this entry was copied over earlier..
-        TlmType mappedAddress = ipcpkt->tlm_address;
-        if (tlm_map.find(ipcpkt->tlm_address) != tlm_map.end()) {
-            mappedAddress = tlm_map.at(ipcpkt->tlm_address);
-            npulog(cout << "Using mapped version of the TLM address here. Original: " << ipcpkt->tlm_address << ", New: " << mappedAddress << endl;)
-            ipcpkt->bytes_to_allocate = tlm_read(mappedAddress);
-        } else {
-          //mappedAddress = ipcpkt->tlm_address;
-          npulog(cout << "This entry doesn't exist on SRAM.." << endl;)
-          ipcpkt->bytes_to_allocate = 0;
-        }
+        ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
         // if(ipcpkt->tlm_address > mem_size) {
         //   npulog(cout << "TLM Address in SRAM read is larger than mem_size for tlm req: " << ipcpkt->id() << endl;)
         //   ipcpkt->bytes_to_allocate = 0;
@@ -114,22 +108,8 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
         ocn_wr_if->put(to_send);
 
       } else if(ipcpkt->RequestType.find("COPY") != std::string::npos) {
-          //npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is:" << endl;)
-          //npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is: " << ipcpkt->tlm_address  << endl;)
-          if (tlm_map.find(ipcpkt->tlm_address) == tlm_map.end()) {
-            newTLMAdress++;
-            // this is where we just overwrite the entries.. 
-            // instead, convert this to an LRU
-            if(newTLMAdress >= mem_size) {
-              newTLMAdress = newTLMAdress-mem_size;
-            }
-            mtx_tlmMap_.lock();
-            tlm_map.emplace(ipcpkt->tlm_address, newTLMAdress);
-            mtx_tlmMap_.unlock();
-            tlm_write(newTLMAdress, ipcpkt->bytes_to_allocate);
-          } else {
-            npulog(cout << "entry exists already in tlmMap.." << endl;)
-          }   
+          npulog(cout << "COPY REQUST FORWARDED FROM HAL!! HALLELUJAH! tlm address is: " << ipcpkt->tlm_address  << endl;)
+          tlm_write(ipcpkt->tlm_address, ipcpkt->bytes_to_allocate);   
       } else {
         npu_error("TLMCRTLR IPC_MEM Invalid command in "+memname_);
       }

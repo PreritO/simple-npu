@@ -219,7 +219,7 @@ UnibitNode<T>* UnibitNode<T>::getZeroNode() const {
 template <class T>
 T UnibitNode<T>::getAction() const {
   // cout<<"getAction"<<this->tlm_addr<<endl;
-  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr);
+  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 0);
   return mAction;
 }
 

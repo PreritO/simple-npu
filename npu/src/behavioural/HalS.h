@@ -88,7 +88,7 @@ class HalS : public sc_interface {
    * @param  val_compare    value to compare against read value
    * @return                value @ addr
    */
-  virtual TlmType tlmread(int VirtualAddress, int data, std::size_t size,
-        std::size_t val_compare = 0) = 0;
+  virtual TlmType tlmread(int VirtualAddress, int data, std::size_t size, 
+      bool key_read, std::size_t val_compare = 0) = 0;
 };
 #endif  // BEHAVIOURAL_HALS_H_

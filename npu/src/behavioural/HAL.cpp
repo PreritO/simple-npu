@@ -212,7 +212,7 @@ bool HAL::SendtoODE(std::size_t thread_id,
  * ---------------------------------------------------
  */
 std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
-      std::size_t size, std::size_t val_compare) {
+      std::size_t size, bool key_read, std::size_t val_compare) {
   // 1. Virtual Address
   TlmType vaddr = VirtualAddress;
   // 2. Get Physical Address from the Virtual Address Space
@@ -254,54 +254,14 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
            << " got for:" << recv_p->tlm_address
            << " reqcounteris:" << tlmreqcounter << endl;)
   }
-  //npulog(cout << "vaddr: " << vaddr << ", phys addr: " << result.physcialaddr << ", destination: " << destination_memory << ", bytes to allocate return: " << recv_p->bytes_to_allocate << endl;)
-  if (recv_p->bytes_to_allocate == 0) {
-      // Let's not send this request to off-chip memory yet.. only send the request to fetch the contents
-      // to SRAM
-
-      // // 3.2 Prepare Packet to send to MEM
-      // // 3.2.1 set the destination memory
-      // auto memmessage = make_routing_packet
-      //         (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
-      // // 3.2.2 Set Packet ID
-      // memmessage->payload->id(tlmreqcounter++);
-      // int pktid = memmessage->payload->id();
-      // memmessage->payload->RequestType = "READ";
-      // memmessage->payload->tlm_address = result.physcialaddr;
-      // npulog(cout << "Sending request to off-chip for tlm req: " << pktid << endl;)
-      // cluster_local_switch_wr_if->put(memmessage);
-      // wait(tlmvar_halevent);
-      // bool foundinmap = false;
-      // while (foundinmap == false) {
-      //   if (tlmvar_halreqs_buffer.find(pktid) == tlmvar_halreqs_buffer.end()) {
-      //     wait(tlmvar_halevent);
-      //   } else {
-      //     foundinmap = true;
-      //   }
-      // }
-      // tlmvar_halmutex.lock();
-      // auto recv_p = tlmvar_halreqs_buffer.at(pktid);
-      // tlmvar_halmutex.unlock();
-
-      // if (recv_p->id() != pktid) {
-      //   npu_error("MAP ERROR HAL"+core_number+
-      //             " for id: "+std::to_string(recv_p->id()));
-      // }
-      // if (recv_p->bytes_to_allocate != val_compare) {
-      //   npulog(
-      //     cout << "HAL Val compare: @addr" << VirtualAddress
-      //         << " -->" << recv_p->bytes_to_allocate
-      //         << " -- " << val_compare
-      //         << endl
-      //         << "Req for vaddr:" << memmessage->payload->tlm_address
-      //         << " got for:" << recv_p->tlm_address
-      //         << " reqcounteris:" << tlmreqcounter << endl;)
-      // }
-
-      // Trigger an async fetch from DRAM to SRAM here to get contents, but not on the critical path.
-      //npulog(cout << "spawning a thread to fetch contents from DRAM to SRAM.."<< endl;)
-      //ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMThread, this, vaddr, vaddr, result.physcialaddr)));
-
+  // key_read indicates that we're doing a query for the key in the lookup table 
+  // and because it's now actually being stored in memory, and the value read  
+  // is also from memory, bytes_to_allocate should not be 0 if entry exists at vaddr..
+  // debug:
+  // if (key_read) {
+  //   cout << "Doing a key lookup, SRAM hit: " << recv_p->bytes_to_allocate << endl;
+  // }
+  if (recv_p->bytes_to_allocate == 0 && key_read) {
       npulog(debug, cout << "Sending HAL signal to do async fetch" << endl;)
       auto asyncmessage = make_routing_packet
          (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
