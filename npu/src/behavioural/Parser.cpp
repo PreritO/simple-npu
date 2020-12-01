@@ -64,62 +64,66 @@ void Parser::init() {
 
 void Parser::ParserThread(std::size_t thread_id) {
   while (1) {
-    auto received_rp = unbox_routing_packet
-                       <PacketDescriptor>(ocn_rd_if->get());
-    auto received_pd = received_rp->payload;
-    // 1. Who sent it ?
-    if (received_rp->source == "splitter") {
-      increment_counter("PCL_PKT_FROM_SPLITTER_ANY_EVENT");
-      increment_counter("PCL_PKT_FROM_SPLITTER_IG" +
-                        std::to_string(received_pd->isolation_group()) +
-                        "_EVENT");
+    if (auto received_rp = try_unbox_routing_packet
+                       <PacketDescriptor>(ocn_rd_if->get())) {
+      auto received_pd = received_rp->payload;
+      // 1. Who sent it ?
+      if (received_rp->source == "splitter") {
+        increment_counter("PCL_PKT_FROM_SPLITTER_ANY_EVENT");
+        increment_counter("PCL_PKT_FROM_SPLITTER_IG" +
+                          std::to_string(received_pd->isolation_group()) +
+                          "_EVENT");
 
-      // 2. Check if it can write to the port or not.
-      if (!ocn_wr_if->nb_can_put()) {
-        // 2.1 Drop the PD.
-        if (SimulationParameters["drop"].get<bool>()) {
-          drop_data(received_pd, "Parser Can't write, output fifo is full");
-        } else {
-          // 2.2 Wait till space is avaliable in FIFO
-          wait(ocn_wr_if->ok_to_put());
+        // 2. Check if it can write to the port or not.
+        if (!ocn_wr_if->nb_can_put()) {
+          // 2.1 Drop the PD.
+          if (SimulationParameters["drop"].get<bool>()) {
+            drop_data(received_pd, "Parser Can't write, output fifo is full");
+          } else {
+            // 2.2 Wait till space is avaliable in FIFO
+            wait(ocn_wr_if->ok_to_put());
+          }
         }
-      }
-      // 3.0 Lets parse.
-      auto seed = static_cast<unsigned int>
-      (std::chrono::high_resolution_clock::now().time_since_epoch().count());
-      std::mt19937 rng(seed);
-      auto rcos = SimulationParameters["rcos"].get<int>();
-      auto priorities = SimulationParameters["priorities"].get<int>();
-      std::uniform_int_distribution<std::size_t> uid_rcos(0, rcos - 1);
-      std::uniform_int_distribution<std::size_t> uid_pri(0, priorities - 1);
+        // 3.0 Lets parse.
+        auto seed = static_cast<unsigned int>
+        (std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        std::mt19937 rng(seed);
+        auto rcos = SimulationParameters["rcos"].get<int>();
+        auto priorities = SimulationParameters["priorities"].get<int>();
+        std::uniform_int_distribution<std::size_t> uid_rcos(0, rcos - 1);
+        std::uniform_int_distribution<std::size_t> uid_pri(0, priorities - 1);
 
-      // 3.0.1 Parse the packet
-      received_pd->parse();
-      // 3.1 Choose priority for received PacketDescriptor
-      //      When a packet is enqueued, it calculates the priority number.
-      //      i.e. a number between 1 and 5.
-      auto pri = received_pd->context() % priorities;
-      // 3.2 Assigning Resource Class of Service to PacketDescriptor
-      received_pd->resource_class_of_service(uid_rcos(rng));
-      // 3.3 Assign prioirty to PacketDescriptor
-      // Each packet enqueued to the queuing discipline is assigned a priority.
-      received_pd->packet_priority(pri);
-      // 4. Check if Packet needs to be dropped
-      if (received_pd->drop()) {
-        // 4.1 Drop it.
-        drop_data(received_pd,
-                  "Parser Packet marked for drop "
-                  +std::to_string(received_pd->id()));
-      } else {
-        // 4.2. Send it to Scheduler
-        ocn_wr_if->put(make_routing_packet
-                      (module_name_, "scheduler", received_pd));
-        increment_counter("PCL_PKT_TO_SCHEDULER_IG" + std::to_string
-                              (received_pd->isolation_group()) + "_EVENT");
+        // 3.0.1 Parse the packet
+        received_pd->parse();
+        // 3.1 Choose priority for received PacketDescriptor
+        //      When a packet is enqueued, it calculates the priority number.
+        //      i.e. a number between 1 and 5.
+        auto pri = received_pd->context() % priorities;
+        // 3.2 Assigning Resource Class of Service to PacketDescriptor
+        received_pd->resource_class_of_service(uid_rcos(rng));
+        // 3.3 Assign prioirty to PacketDescriptor
+        // Each packet enqueued to the queuing discipline is assigned a priority.
+        received_pd->packet_priority(pri);
+        // 4. Check if Packet needs to be dropped
+        if (received_pd->drop()) {
+          // 4.1 Drop it.
+          drop_data(received_pd,
+                    "Parser Packet marked for drop "
+                    +std::to_string(received_pd->id()));
+        } else {
+          // 4.2. Send it to Scheduler
+          ocn_wr_if->put(make_routing_packet
+                        (module_name_, "scheduler", received_pd));
+          increment_counter("PCL_PKT_TO_SCHEDULER_IG" + std::to_string
+                                (received_pd->isolation_group()) + "_EVENT");
+        }
+      } else if(received_rp->source.find("cluster") != std::string::npos) {
+        cout << "GOT Recirculation PACKET: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
+        
       }
     } else {
       npu_error(module_name()
-                +" Cant Handle a PacketDescriptor from "+received_rp->source);
+                +" Can only handle a PacketDescriptors");
     }
   }
 }

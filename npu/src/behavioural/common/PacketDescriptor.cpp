@@ -121,6 +121,14 @@ std::size_t PacketDescriptor::packet_priority() const {
   return packet_priority_;
 }
 
+void PacketDescriptor::set_packet_time_recirc_(double timeRecirc) {
+  time_recirc_ = timeRecirc;
+}
+
+double PacketDescriptor::get_packet_time_recirc_() const {
+  return time_recirc_;
+}
+
 std::size_t PacketDescriptor::context() const {
   return packet_context_;
 }

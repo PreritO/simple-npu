@@ -53,6 +53,7 @@ public:
 
     // Getters
     bool getFlag() const;
+    unsigned int getKey() const;
     unsigned int getKeyBitmap() const;
     T getValue() const;
     HashTableEntry<T>* getPtr() const;
@@ -169,6 +170,23 @@ bool HashTableEntry<T>::getFlag() const {
   std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 0);
   //return static_cast<bool>(val);
   return mEntryTypeFlag;
+}
+
+// This function is a copy of getKeyBitmap but is called on the lookup path and not the insertion path..
+template <class T>
+unsigned int HashTableEntry<T>::getKey() const {
+  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 1);
+  if (val == 0) {
+    // indicates packet needs to be recirculated..
+    return 0;
+  }
+  if(static_cast<unsigned int>(val) != mKey_Bitmap) {
+    //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
+    ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;
+    return mKey_Bitmap;
+  }
+  //return mKey_Bitmap;
+  return static_cast<unsigned int>(val);
 }
 
 template <class T>

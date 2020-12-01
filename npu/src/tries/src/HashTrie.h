@@ -189,6 +189,10 @@ T HashTrie<T>::exactPrefixMatch(BitString iKey, unsigned int iHashKey, HashTable
         iPos = 0;
     }
     if (iEntry->getFlag()) {
+        if(iEntry->getKey() == 0) {
+            // This is meant to indicate a recirculation..
+            return 0;
+        }
         if (BitString::intToBitString(iEntry->getKeyBitmap(), iEntry->getKeyLength()) == iKey) {
             //cout << "This is a k/v lookup, returning value action: iEntry->getValue()" << endl;
             return iEntry->getValue();

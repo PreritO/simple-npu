@@ -45,7 +45,6 @@ public SRAMMemorySIM {
       }
         //outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
     } else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
-      cout << "cache size: " << cache.size() << endl;
       cache.put(adr, ptr);
       //outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
     }

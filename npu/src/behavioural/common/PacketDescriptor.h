@@ -131,6 +131,10 @@ class PacketDescriptor: public pfp::core::PacketBase,
   void packet_priority(std::size_t priority);
 
   std::size_t packet_priority() const;
+
+  void set_packet_time_recirc_(double timeRecirc);
+  double get_packet_time_recirc_() const;
+
   /**
    * Get the Packet context
    * @return  Packet context
@@ -206,6 +210,8 @@ class PacketDescriptor: public pfp::core::PacketBase,
   header_t packet_header_;
 
   std::size_t packet_priority_;
+
+  double time_recirc_;
 };
 
 #endif  // BEHAVIOURAL_COMMON_PACKETDESCRIPTOR_H_

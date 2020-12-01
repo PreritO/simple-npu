@@ -40,6 +40,7 @@ HAL::HAL(
   sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):
       HALSIM(nm, parent, configfile),
       sem_("Semaphore", 16),
+      sem_req_("Semaphore", 16),
       meminfo(CONFIGROOT+"MemoryAddressMapping.cfg") {
   tlmreqcounter = 0;
   JobRequestCounter = 0;
@@ -149,7 +150,8 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
   *pd = received_pd;
   // TODO(?) :[Observers]
   // Core is busy if a thread is busy
-
+  job_queue_recirc_.push(received_pd);
+  sem_req_.post();
   // TODO(?) :[Observers]
   // Request the corresponding Packet from memory
   cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
@@ -178,6 +180,8 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
 bool HAL::do_processing(std::size_t thread_id,
                         std::shared_ptr<PacketDescriptor> pd,
                         std::shared_ptr<Packet> payload) {
+  // PO - this is where we can store the pd for packets that need to be recirc.
+
   return true;
 }
 
@@ -262,6 +266,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   //   cout << "Doing a key lookup, SRAM hit: " << recv_p->bytes_to_allocate << endl;
   // }
   if (recv_p->bytes_to_allocate == 0 && key_read) {
+      // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch" << endl;)
       auto asyncmessage = make_routing_packet
          (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
@@ -273,7 +278,16 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       tlmvar_halreqs_fetch_buffer.push(asyncmessage->payload);
       tlmvar_halfetchmutex.unlock();
       fetch_.notify();
+      // now, PD should be sent back to the parser module
+      // first get the pd from 
+      sem_req_.wait();
+      auto received_pd = job_queue_recirc_.pop();
+      received_pd->set_packet_time_recirc_(sc_time_stamp().to_default_time_units());
+      auto recirculationmessage = make_routing_packet
+          (name + core_number, "parser", received_pd);
+      cluster_local_switch_wr_if->put(recirculationmessage);
   }
+  // for a recirc packet, bytes_to_allocate should equal 0.. 
   return recv_p->bytes_to_allocate;
 }
 

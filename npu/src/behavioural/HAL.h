@@ -110,6 +110,8 @@ class HAL: public HALSIM {
   sc_semaphore sem_;
   //! Job queue
   MTQueue<std::shared_ptr<PacketDescriptor>> job_queue_;
+  sc_semaphore sem_req_;
+  MTQueue<std::shared_ptr<PacketDescriptor>> job_queue_recirc_;
   //! Store cp access requests
   std::map<std::size_t, std::size_t> cp_requests_;
   //! Notify event for payloads
