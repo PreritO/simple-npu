@@ -21,7 +21,7 @@ public SRAMMemorySIM {
   virtual void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
     tlm::tlm_command cmd = trans.get_command();
     sc_dt::uint64    adr = trans.get_address();
-    unsigned char*   ptr = trans.get_data_ptr();
+    unsigned char*   dataptr = trans.get_data_ptr();
     unsigned int     len = trans.get_data_length();
     unsigned char*   byt = trans.get_byte_enable_ptr();
     unsigned int     wid = trans.get_streaming_width();
@@ -40,12 +40,16 @@ public SRAMMemorySIM {
     // }
     // Read or Write depending upon command.
     if ( cmd == tlm::TLM_READ_COMMAND ) {
+      int data = 0;
       if(cache.exists(adr)) {
-        ptr = cache.get(adr);
+        data = cache.get(adr);
       }
+      memcpy(dataptr, &data, len);
         //outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
     } else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
-      cache.put(adr, ptr);
+      int tmp;
+      memcpy(&tmp, dataptr, len);
+      cache.put(adr, tmp);
       //outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
     }
     // response status to indicate successful completion
@@ -61,7 +65,7 @@ public SRAMMemorySIM {
   //std::unordered_map<sc_dt::uint64, unsigned char*> mem;
   //std::deque<sc_dt::uint64> dq;
   //std::ofstream outlog;
-  cache::lru_cache<sc_dt::uint64, unsigned char*> cache;
+  cache::lru_cache<sc_dt::uint64, int> cache;
 };
 
 /*
@@ -84,7 +88,7 @@ SRAMMemory<T>::SRAMMemory
   //   for (int i = 0; i < SIZE; i++) {
   //     mem.push_back(0xAA000000);
   //   }
-  cache = cache::lru_cache<sc_dt::uint64, unsigned char*>(SIZE);
+  cache = cache::lru_cache<sc_dt::uint64, int>(SIZE);
 }
 
 #endif  // BEHAVIOURAL_MEMORY_H_

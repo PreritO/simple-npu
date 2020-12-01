@@ -247,10 +247,10 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
 
   //ocn_20                          //"ocn_10", "ocn_21", "rm"
   bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0], ocn20_rd_channel[1]};
-  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0], ocn20_rd_channel[1]};
+  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0], ocn20_wr_channel[1]};
 
-  bind rm.ocn_rd_if                {ocn20_rd_channel[1]};
-  bind rm.ocn_wr_if                {ocn20_wr_channel[1]};
+  bind rm.ocn_rd_if                {ocn20_wr_channel[1]};
+  bind rm.ocn_wr_if                {ocn20_rd_channel[1]};
 
   // --- ocn_01 ---
   Queue ocn01_rd_channel[4];

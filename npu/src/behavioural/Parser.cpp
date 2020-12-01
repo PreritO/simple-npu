@@ -64,8 +64,9 @@ void Parser::init() {
 
 void Parser::ParserThread(std::size_t thread_id) {
   while (1) {
+    auto received_tr = ocn_rd_if->get();
     if (auto received_rp = try_unbox_routing_packet
-                       <PacketDescriptor>(ocn_rd_if->get())) {
+                       <PacketDescriptor>(received_tr)) {
       auto received_pd = received_rp->payload;
       // 1. Who sent it ?
       if (received_rp->source == "splitter") {
@@ -117,8 +118,8 @@ void Parser::ParserThread(std::size_t thread_id) {
           increment_counter("PCL_PKT_TO_SCHEDULER_IG" + std::to_string
                                 (received_pd->isolation_group()) + "_EVENT");
         }
-      } else if(received_rp->source.find("rm") != std::string::npos) {
-        cout << "Parser: GOT Recirculation PACKET: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
+      } else if(received_rp->source == "rm") {
+        //cout << "Parser: GOT Recirculation PACKET: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
         // Send the packet to the scheduler again..
         ocn_wr_if->put(make_routing_packet
                         (module_name_, "scheduler", received_pd));

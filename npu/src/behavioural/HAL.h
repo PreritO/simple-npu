@@ -90,12 +90,14 @@ class HAL: public HALSIM {
  private:
   void HAL_PortServiceThread();
   void HAL_FetchFromMCTToSRAMThread();
+  void HAL_FetchFromMCTToSRAMCompleteThread();
 
   //! Event to monitor fetch status..
   sc_event fetch_;
+  sc_event fetch_copy_response_;
   //std::map<std::size_t, std::shared_ptr<IPC_MEM>> tlmvar_halreqs_fetch_buffer;
   //fifo queue to deal with async dram-sram fetch..
-  std::queue<std::shared_ptr<IPC_MEM>> tlmvar_halreqs_fetch_buffer;
+  std::queue<std::shared_ptr<RoutingPacket<IPC_MEM>>> tlmvar_halreqs_fetch_buffer;
   //! Mutex to access tlmvar_halreqs_fetch_buffer
   sc_mutex tlmvar_halfetchmutex;
 
@@ -110,8 +112,9 @@ class HAL: public HALSIM {
   sc_semaphore sem_;
   //! Job queue
   MTQueue<std::shared_ptr<PacketDescriptor>> job_queue_;
-  sc_semaphore sem_req_;
-  MTQueue<std::shared_ptr<PacketDescriptor>> job_queue_recirc_;
+  //! Internal buffer to store tlm read packets
+  std::queue<std::shared_ptr<PacketDescriptor>>job_queue_recirc_;
+  std::queue<std::shared_ptr<IPC_MEM>> tlmvar_mem_response_buffer;
   //! Store cp access requests
   std::map<std::size_t, std::size_t> cp_requests_;
   //! Notify event for payloads
@@ -129,6 +132,7 @@ class HAL: public HALSIM {
   sc_event tlmvar_halevent;
   //! Mutex to access tlmvar requests buffer
   sc_mutex tlmvar_halmutex;
+  sc_mutex tlmvar_memResponseMutex;
   //! HAL TLM utils Decode counter for requests sent.
   int tlmreqcounter;
   //! Core number that this hal belongs to

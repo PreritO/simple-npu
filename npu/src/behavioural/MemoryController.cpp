@@ -113,6 +113,7 @@ void MemoryController::MemoryControllerThread(std::size_t thread_id) {
 
       } else if (ipcpkt->RequestType.find("COPY") != std::string::npos) {
         ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        ipcpkt->RequestType = "COPYRESPONSE";
         auto to_send = make_routing_packet
             (setsourcetome_, ipcpkt_SentFrom, ipcpkt);
         //npulog(cout << "Sending message back to the cluster/core it came from with data.." << endl;)
