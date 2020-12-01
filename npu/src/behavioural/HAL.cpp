@@ -79,7 +79,10 @@ void HAL::HAL_PortServiceThread() {
                    try_unbox_routing_packet<PacketDescriptor>(received_tr)) {
       // job assignment: Schedular->Core
       job_queue_.push(received_pd->payload);
+      //cout << "HAL assigning job for: " << received_pd->payload->id() << endl;
+      //if(received_pd->payload->get_packet_time_recirc_() != 0) {
       job_queue_recirc_.push(received_pd->payload);
+      //}
       evt_.notify();  // Kickstart the threads
       increment_counter(AssignedPDs);
     } else if (auto received_p =
@@ -196,22 +199,21 @@ bool HAL::SendtoODE(std::size_t thread_id,
   auto received_p = payload;
   auto received_pd = pd;
 
-  //  1.  Send to ODE for MEM offload
-  cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-                            received_pd->payload_target_memname_,
-                            "completion_notice", received_p));
-
-  // 2. Write PacketDescriptor to ODE
-  // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-  //                           "ode", received_pd));
   auto recircPD = job_queue_recirc_.front();
   if(received_pd->id() == recircPD->id()) {
-    job_queue_recirc_.pop();
     if(recircPD->get_packet_time_recirc_() != 0) {
+      job_queue_recirc_.pop();
       auto recirculationmessage = make_routing_packet
           (name + core_number, "rm", received_pd);
       cluster_local_switch_wr_if->put(recirculationmessage);
     } else {
+      //  1.  Send to ODE for MEM offload
+      cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+                            received_pd->payload_target_memname_,
+                            "completion_notice", received_p));
+        // 2. Write PacketDescriptor to ODE
+        // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+        //                           "ode", received_pd));
       cluster_local_switch_wr_if->put(make_routing_packet
                                   (module_name_, "roc", received_pd));
       cluster_local_switch_wr_if->put(make_routing_packet
@@ -280,7 +282,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   // if (key_read) {
   //   cout << "Doing a key lookup, SRAM hit: " << recv_p->bytes_to_allocate << endl;
   // }
-  if (recv_p->bytes_to_allocate == 0 && key_read) {
+  if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)
       cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;
@@ -296,8 +298,8 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       // now, PD should be sent back to the recirculation module
       // first get the pd from 
       received_pd->set_packet_time_recirc_(sc_time_stamp().to_default_time_units());
-      //cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
-  } else if (recv_p->bytes_to_allocate != 0 && key_read) {
+      cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
+  } else if (key_read && recv_p->bytes_to_allocate != 0) {
     received_pd->set_packet_time_recirc_(0);
     cout << "pkt id: " << received_pd->id() << " sram hit" << endl;
   }

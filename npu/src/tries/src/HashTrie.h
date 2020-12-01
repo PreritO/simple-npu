@@ -189,8 +189,8 @@ T HashTrie<T>::exactPrefixMatch(BitString iKey, unsigned int iHashKey, HashTable
         iPos = 0;
     }
     if (iEntry->getFlag()) {
+        // This is meant to indicate a recirculation
         if(iEntry->getKey() == 0) {
-            // This is meant to indicate a recirculation..
             return 0;
         }
         if (BitString::intToBitString(iEntry->getKeyBitmap(), iEntry->getKeyLength()) == iKey) {

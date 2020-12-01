@@ -191,7 +191,7 @@ unsigned int HashTableEntry<T>::getKey() const {
 
 template <class T>
 unsigned int HashTableEntry<T>::getKeyBitmap() const {
-  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 1);
+  std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 0);
   if(static_cast<unsigned int>(val) != mKey_Bitmap) {
     //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
     ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;

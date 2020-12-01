@@ -292,7 +292,6 @@ SRAMController::tlm_write(tlm_data_type addr, tlm_data_type datatowrite) {
   tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
   sc_time delay = WR_LATENCY;
   // 0 for read ***** 1 for write
-  cout << "Data to write to SRAM" << datatowrite << endl;
   tlm::tlm_command cmd = static_cast<tlm::tlm_command>(1);
   trans->set_command(cmd);
   trans->set_address(addr);
