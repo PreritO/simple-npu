@@ -117,9 +117,11 @@ void Parser::ParserThread(std::size_t thread_id) {
           increment_counter("PCL_PKT_TO_SCHEDULER_IG" + std::to_string
                                 (received_pd->isolation_group()) + "_EVENT");
         }
-      } else if(received_rp->source.find("cluster") != std::string::npos) {
-        cout << "GOT Recirculation PACKET: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
-        
+      } else if(received_rp->source.find("rm") != std::string::npos) {
+        cout << "Parser: GOT Recirculation PACKET: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
+        // Send the packet to the scheduler again..
+        ocn_wr_if->put(make_routing_packet
+                        (module_name_, "scheduler", received_pd));
       }
     } else {
       npu_error(module_name()

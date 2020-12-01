@@ -278,13 +278,13 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       tlmvar_halreqs_fetch_buffer.push(asyncmessage->payload);
       tlmvar_halfetchmutex.unlock();
       fetch_.notify();
-      // now, PD should be sent back to the parser module
+      // now, PD should be sent back to the recirculation module
       // first get the pd from 
       sem_req_.wait();
       auto received_pd = job_queue_recirc_.pop();
       received_pd->set_packet_time_recirc_(sc_time_stamp().to_default_time_units());
       auto recirculationmessage = make_routing_packet
-          (name + core_number, "parser", received_pd);
+          (name + core_number, "rm", received_pd);
       cluster_local_switch_wr_if->put(recirculationmessage);
   }
   // for a recirc packet, bytes_to_allocate should equal 0.. 

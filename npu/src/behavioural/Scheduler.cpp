@@ -57,13 +57,13 @@ void Scheduler::Scheduler_PortServiceThread() {
     auto received_tr = ocn_rd_if->get();
     if (auto received_pd
             = try_unbox_routing_packet<PacketDescriptor>(received_tr)) {
-      // cout << "GOT FROM: "<< received_pd->destination<<endl;
+      cout << "scheduler processing pkt: "<< received_pd->id()<<endl;
       JobsReceived.push(received_pd->payload);
       GotaJob.notify();
     } else if (auto request
                 = try_unbox_routing_packet
                   <RPCMessage<SchedulerMessages>>(received_tr)) {
-      // cout << "GOT FROM: "<< request->destination<<endl;
+      //cout << "SCHEDULER GOT FROM: "<< request->destination<<endl;
       JobRequests.push(request->payload);
       GotaJobRequest.notify();
     } else {

@@ -59,6 +59,11 @@ PE Parser("ParserConfig.cfg") {
   QueueWrI ocn_wr_if;
 };
 
+PE RecirculationModule {
+  QueueRdI ocn_rd_if;
+  QueueWrI ocn_wr_if;
+};
+
 PE Scheduler("SchedularConfig.cfg") {
   QueueRdI ocn_rd_if;
   QueueWrI ocn_wr_if;
@@ -194,6 +199,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
 
   Splitter splitter;
   Parser parser("Parser.cfg");
+  RecirculationModule rm;
   Scheduler scheduler("Scheduler.cfg");
   Cluster cluster("Cluster.cfg")[1];
   ReorderController roc;
@@ -236,12 +242,15 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind roc.ocn_wr_if                {ocn10_rd_channel[1]};
 
   // --- ocn_20 ---
-  Queue ocn20_rd_channel[1];
-  Queue ocn20_wr_channel[1];
+  Queue ocn20_rd_channel[2];
+  Queue ocn20_wr_channel[2];
 
-  //ocn_20                          //"ocn_10", "ocn_21"
-  bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0]};
-  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0]};
+  //ocn_20                          //"ocn_10", "ocn_21", "rm"
+  bind ocn_20.ocn_rd_if             {ocn10_wr_channel[2],ocn20_rd_channel[0], ocn20_rd_channel[1]};
+  bind ocn_20.ocn_wr_if             {ocn10_rd_channel[2],ocn20_wr_channel[0], ocn20_rd_channel[1]};
+
+  bind rm.ocn_rd_if                {ocn20_rd_channel[1]};
+  bind rm.ocn_wr_if                {ocn20_wr_channel[1]};
 
   // --- ocn_01 ---
   Queue ocn01_rd_channel[4];
