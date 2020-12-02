@@ -81,7 +81,11 @@ void HAL::HAL_PortServiceThread() {
       job_queue_.push(received_pd->payload);
       //cout << "HAL assigning job for: " << received_pd->payload->id() << endl;
       //if(received_pd->payload->get_packet_time_recirc_() != 0) {
-      job_queue_recirc_.push(received_pd->payload);
+      // this might not be right..
+      received_pd->payload->set_packet_time_recirc_(0);
+      job_queue_tlm_read_mutex.lock();
+      job_queue_tlm_read.push(received_pd->payload);
+      job_queue_tlm_read_mutex.unlock();
       //}
       evt_.notify();  // Kickstart the threads
       increment_counter(AssignedPDs);
@@ -199,25 +203,31 @@ bool HAL::SendtoODE(std::size_t thread_id,
   auto received_p = payload;
   auto received_pd = pd;
 
-  auto recircPD = job_queue_recirc_.front();
-  if(received_pd->id() == recircPD->id()) {
-    if(recircPD->get_packet_time_recirc_() != 0) {
-      job_queue_recirc_.pop();
-      auto recirculationmessage = make_routing_packet
-          (name + core_number, "rm", received_pd);
-      cluster_local_switch_wr_if->put(recirculationmessage);
-    } else {
-      //  1.  Send to ODE for MEM offload
-      cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-                            received_pd->payload_target_memname_,
-                            "completion_notice", received_p));
-        // 2. Write PacketDescriptor to ODE
-        // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-        //                           "ode", received_pd));
-      cluster_local_switch_wr_if->put(make_routing_packet
-                                  (module_name_, "roc", received_pd));
-      cluster_local_switch_wr_if->put(make_routing_packet
-                              (core_number, "cluster_scheduler", received_pd));
+  if(received_pd->get_packet_time_recirc_() != 0) {
+    // recirculate pkt here..
+    auto recirculationmessage = make_routing_packet
+        (name + core_number, "rm", received_pd);
+    cluster_local_switch_wr_if->put(recirculationmessage);
+  } else {
+    //  1.  Send to ODE for MEM offload
+    cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+                          received_pd->payload_target_memname_,
+                          "completion_notice", received_p));
+      // 2. Write PacketDescriptor to ODE
+      // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+      //                           "ode", received_pd));
+    cluster_local_switch_wr_if->put(make_routing_packet
+                                (module_name_, "roc", received_pd));
+    cluster_local_switch_wr_if->put(make_routing_packet
+                            (core_number, "cluster_scheduler", received_pd));
+  }
+  // for the case where tlmread was called out of order.
+  if (!job_queue_tlm_read.empty()) {
+    auto tlm_pd = job_queue_tlm_read.front();
+    if (tlm_pd->id() == received_pd->id()) {
+      job_queue_tlm_read_mutex.lock();
+      job_queue_tlm_read.pop();
+      job_queue_tlm_read_mutex.unlock();
     }
   }
   //  3  Now post -- all 4 tokens will become free
@@ -230,10 +240,19 @@ bool HAL::SendtoODE(std::size_t thread_id,
  * HAL TLM
  * ---------------------------------------------------
  */
+// made it so this function JUST reads the keys, nothing else.
 std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       std::size_t size, bool key_read, std::size_t val_compare) {
   // PO - this is to keep track of the packet descriptor that we're dealing with
-  auto received_pd = job_queue_recirc_.front();
+  if (!key_read) {
+    return 0;
+  }
+  job_queue_tlm_read_mutex.lock();
+  auto received_pd = job_queue_tlm_read.front();
+  job_queue_tlm_read_mutex.unlock();
+  if (received_pd == NULL) {
+    return 0;
+  }
   // 1. Virtual Address
   TlmType vaddr = VirtualAddress;
   // 2. Get Physical Address from the Virtual Address Space
@@ -243,7 +262,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   auto memmessage = make_routing_packet
           (name + core_number, "edram_0_mem", std::make_shared<IPC_MEM>());
   // 3.2.2 Set Packet ID
-  memmessage->payload->id(tlmreqcounter++);
+  memmessage->payload->id(received_pd->id());
   int pktid = memmessage->payload->id();
   memmessage->payload->RequestType = "READ";
   memmessage->payload->tlm_address = vaddr;
@@ -285,7 +304,6 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)
-      cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;
       auto asyncmessage = make_routing_packet
          (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
       asyncmessage->payload->id(received_pd->id()); // set the payload id to the same as the packet id for debugging
@@ -295,15 +313,19 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       tlmvar_halreqs_fetch_buffer.push(asyncmessage);
       tlmvar_halfetchmutex.unlock();
       fetch_.notify();
-      // now, PD should be sent back to the recirculation module
-      // first get the pd from 
-      received_pd->set_packet_time_recirc_(sc_time_stamp().to_default_time_units());
+      // now, PD should be updated to reflect a time stamp..
+      received_pd->set_packet_time_recirc_(sc_time_stamp().to_double());
       cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
+      cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << " and setting time at: " << sc_time_stamp().to_double() << endl;
+
   } else if (key_read && recv_p->bytes_to_allocate != 0) {
     received_pd->set_packet_time_recirc_(0);
     cout << "pkt id: " << received_pd->id() << " sram hit" << endl;
   }
   // for a recirc packet, bytes_to_allocate should equal 0.. 
+  job_queue_tlm_read_mutex.lock();
+  job_queue_tlm_read.pop();
+  job_queue_tlm_read_mutex.unlock();
   return recv_p->bytes_to_allocate;
 }
 
@@ -322,6 +344,7 @@ void HAL::HAL_FetchFromMCTToSRAMThread() {
     //int asyncPktId = asynccopymessage->payload->id();
     asynccopymessage->payload->RequestType = "COPY";
     npulog(cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;)
+    cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;
     cluster_local_switch_wr_if->put(asynccopymessage);
   }
 }

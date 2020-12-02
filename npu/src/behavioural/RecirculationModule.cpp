@@ -1,6 +1,5 @@
 #include "./RecirculationModule.h"
 #include <string>
-#include <string>
 #include <vector>
 #include <chrono>
 
@@ -24,7 +23,9 @@ void RecirculationModule::RecirculationModule_PortServiceThread() {
                        <PacketDescriptor>(received_tr)) {
       auto received_pd = received_rp->payload;
       cout << "RM: GOT Recirculation PACKET FROM HAL: " << received_pd->id() << ". recirc sent at: " <<received_pd->get_packet_time_recirc_() << endl;
+      jobsReceived_mtx.lock();
       JobsReceived.push(received_pd);
+      jobsReceived_mtx.unlock();
       GotaJob.notify();
     } else {
       npu_error(module_name()
@@ -35,12 +36,16 @@ void RecirculationModule::RecirculationModule_PortServiceThread() {
 void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
   // Thread function for module functionalty
   while(1) {
+    wait(GotaJob);
     if (!JobsReceived.empty()) {
       // Treat in a FIFO fashion
       auto pd = JobsReceived.front();
       // Prerit TODO: Update time difference to not be hardcorded, instead get this from a configuration file
+      
       if (sc_time_stamp().to_default_time_units() - pd->get_packet_time_recirc_() >= 100) {
+        jobsReceived_mtx.lock();
         JobsReceived.pop();
+        jobsReceived_mtx.unlock();
         auto sendtoparser = make_routing_packet(module_name(), "parser", pd);
         // 2. Check if it can write to the port or not.
         if (!ocn_wr_if->nb_can_put()) {
@@ -52,14 +57,12 @@ void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
         //cout << "RM: FORWARDING pkt: " << pd->id() << "from " << sendtoparser->source << " to: " << sendtoparser->destination << endl;
         ocn_wr_if->put(sendtoparser);
       } else {
-        wait(10, SC_NS);
+        wait(1, SC_NS);
       }
       // JobsReceived.pop();
       // cout << "RM: sending back to scheduler" << endl;
       // auto sendtoparser = make_routing_packet(module_name(), "scheduler", pd);
       // ocn_wr_if->put(sendtoparser);
-    } else {
-      wait(GotaJob);
     }
   }
 }

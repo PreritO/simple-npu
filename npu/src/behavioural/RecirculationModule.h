@@ -25,6 +25,7 @@ class RecirculationModule: public RecirculationModuleSIM {  // NOLINT(whitespace
   //! Internal buffer to store received Jobs from HAL that need to be sent to parser again..
   std::queue<std::shared_ptr<PacketDescriptor>> JobsReceived;
   sc_event GotaJob;
+  sc_mutex jobsReceived_mtx;
 };
 
 #endif  // BEHAVIOURAL_RECIRCULATIONMODULE_H_

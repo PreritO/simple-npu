@@ -113,7 +113,9 @@ class HAL: public HALSIM {
   //! Job queue
   MTQueue<std::shared_ptr<PacketDescriptor>> job_queue_;
   //! Internal buffer to store tlm read packets
-  std::queue<std::shared_ptr<PacketDescriptor>>job_queue_recirc_;
+  std::queue<std::shared_ptr<PacketDescriptor>>job_queue_tlm_read;
+  sc_mutex job_queue_tlm_read_mutex;
+
   std::queue<std::shared_ptr<IPC_MEM>> tlmvar_mem_response_buffer;
   //! Store cp access requests
   std::map<std::size_t, std::size_t> cp_requests_;
