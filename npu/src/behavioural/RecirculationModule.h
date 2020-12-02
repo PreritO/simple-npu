@@ -26,6 +26,7 @@ class RecirculationModule: public RecirculationModuleSIM {  // NOLINT(whitespace
   std::queue<std::shared_ptr<PacketDescriptor>> JobsReceived;
   sc_event GotaJob;
   sc_mutex jobsReceived_mtx;
+  sc_time now;
 };
 
 #endif  // BEHAVIOURAL_RECIRCULATIONMODULE_H_

@@ -78,15 +78,13 @@ void HAL::HAL_PortServiceThread() {
     } else if (auto received_pd =
                    try_unbox_routing_packet<PacketDescriptor>(received_tr)) {
       // job assignment: Schedular->Core
-      job_queue_.push(received_pd->payload);
-      //cout << "HAL assigning job for: " << received_pd->payload->id() << endl;
-      //if(received_pd->payload->get_packet_time_recirc_() != 0) {
-      // this might not be right..
-      received_pd->payload->set_packet_time_recirc_(0);
+      //if(received_pd->payload->get_packet_time_recirc_() == 0) {
+        job_queue_.push(received_pd->payload);
+      //}
+      cout << "HAL assigning job for: " << received_pd->payload->id() << endl;
       job_queue_tlm_read_mutex.lock();
       job_queue_tlm_read.push(received_pd->payload);
       job_queue_tlm_read_mutex.unlock();
-      //}
       evt_.notify();  // Kickstart the threads
       increment_counter(AssignedPDs);
     } else if (auto received_p =
@@ -140,10 +138,10 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
   core_number = "."+std::string(clustername);
 
   // 1. Try to get a Job.
-  int qsize;
-  job_queue_.size(qsize);
+  //int qsize;
+  //job_queue_.size(qsize);
   // All threads initially wait for permission to start
-  if (qsize == 0) {
+  //if (qsize == 0) {
     // Send out a request to the local schedular to send me a job,
     // Job buffer is empty, got to have a job.
     SchedulerMessages RequestaJob(JobRequestCounter++, "GetAJob", clustername);
@@ -155,7 +153,7 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
                     RequestaJob.id,
                     RequestaJob)));
     wait(evt_);
-  }
+  //}
   // Get semaphore access
   // (number of threads that can access equal to CONFIG(teu_active_threads))
   sem_.wait();
@@ -163,6 +161,9 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
   // Get PacketDescriptor from job queue
   auto received_pd = job_queue_.pop();
   *pd = received_pd;
+  if(received_pd->get_packet_time_recirc_() != 0) {
+    return true;
+  }
   // TODO(?) :[Observers]
   // Core is busy if a thread is busy
   // TODO(?) :[Observers]

@@ -36,13 +36,12 @@ void RecirculationModule::RecirculationModule_PortServiceThread() {
 void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
   // Thread function for module functionalty
   while(1) {
-    wait(GotaJob);
     if (!JobsReceived.empty()) {
       // Treat in a FIFO fashion
+      now = sc_time_stamp();
       auto pd = JobsReceived.front();
       // Prerit TODO: Update time difference to not be hardcorded, instead get this from a configuration file
-      
-      if (sc_time_stamp().to_default_time_units() - pd->get_packet_time_recirc_() >= 100) {
+      //if (now.to_default_time_units() - pd->get_packet_time_recirc_() >= 100) {
         jobsReceived_mtx.lock();
         JobsReceived.pop();
         jobsReceived_mtx.unlock();
@@ -54,15 +53,17 @@ void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
           // 2.2 Wait till space is avaliable in FIFO
           wait(ocn_wr_if->ok_to_put());
         }
-        //cout << "RM: FORWARDING pkt: " << pd->id() << "from " << sendtoparser->source << " to: " << sendtoparser->destination << endl;
+        cout << "RM: FORWARDING pkt: " << pd->id() << "from " << sendtoparser->source << " to: " << sendtoparser->destination << endl;
         ocn_wr_if->put(sendtoparser);
-      } else {
-        wait(1, SC_NS);
-      }
+      //} else {
+      //  wait(10, SC_NS);
+      //}
       // JobsReceived.pop();
       // cout << "RM: sending back to scheduler" << endl;
       // auto sendtoparser = make_routing_packet(module_name(), "scheduler", pd);
       // ocn_wr_if->put(sendtoparser);
+    } else {
+        wait(GotaJob);
     }
   }
 }

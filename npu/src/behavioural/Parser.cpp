@@ -105,6 +105,7 @@ void Parser::ParserThread(std::size_t thread_id) {
         // 3.3 Assign prioirty to PacketDescriptor
         // Each packet enqueued to the queuing discipline is assigned a priority.
         received_pd->packet_priority(pri);
+        received_pd->set_packet_time_recirc_(0);
         // 4. Check if Packet needs to be dropped
         if (received_pd->drop()) {
           // 4.1 Drop it.
@@ -123,6 +124,8 @@ void Parser::ParserThread(std::size_t thread_id) {
         // Send the packet to the scheduler again..
         ocn_wr_if->put(make_routing_packet
                         (module_name_, "scheduler", received_pd));
+        increment_counter("PCL_PKT_TO_SCHEDULER_IG" + std::to_string
+                                (received_pd->isolation_group()) + "_EVENT");
       }
     } else {
       npu_error(module_name()
