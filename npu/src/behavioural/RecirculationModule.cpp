@@ -38,26 +38,27 @@ void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
   while(1) {
     if (!JobsReceived.empty()) {
       // Treat in a FIFO fashion
-      now = sc_time_stamp();
       auto pd = JobsReceived.front();
+      sc_time currentTime = sc_time_stamp();
+      int imagDur = 100; // make this a runtime variable from a configuration file
+      sc_time scImageDur = sc_time(imagDur, SC_NS) + currentTime; //< calculate the end time.
       // Prerit TODO: Update time difference to not be hardcorded, instead get this from a configuration file
-      //if (now.to_default_time_units() - pd->get_packet_time_recirc_() >= 100) {
-        jobsReceived_mtx.lock();
-        JobsReceived.pop();
-        jobsReceived_mtx.unlock();
-        auto sendtoparser = make_routing_packet(module_name(), "parser", pd);
-        // 2. Check if it can write to the port or not.
-        if (!ocn_wr_if->nb_can_put()) {
-          // 2.1 Drop the PD.
-          //cout << "RM Can't write, output fifo is full" << endl;
-          // 2.2 Wait till space is avaliable in FIFO
-          wait(ocn_wr_if->ok_to_put());
+      while((sc_time_stamp()) < scImageDur) {
+            wait(10, SC_NS); //< Move simulation time. (Very Important.)
         }
-        cout << "RM: FORWARDING pkt: " << pd->id() << "from " << sendtoparser->source << " to: " << sendtoparser->destination << endl;
-        ocn_wr_if->put(sendtoparser);
-      //} else {
-      //  wait(10, SC_NS);
-      //}
+      jobsReceived_mtx.lock();
+      JobsReceived.pop();
+      jobsReceived_mtx.unlock();
+      auto sendtoparser = make_routing_packet(module_name(), "parser", pd);
+      // 2. Check if it can write to the port or not.
+      if (!ocn_wr_if->nb_can_put()) {
+        // 2.1 Drop the PD.
+        //cout << "RM Can't write, output fifo is full" << endl;
+        // 2.2 Wait till space is avaliable in FIFO
+        wait(ocn_wr_if->ok_to_put());
+      }
+      cout << "RM: FORWARDING pkt: " << pd->id() << "from " << sendtoparser->source << " to: " << sendtoparser->destination << endl;
+      ocn_wr_if->put(sendtoparser);
       // JobsReceived.pop();
       // cout << "RM: sending back to scheduler" << endl;
       // auto sendtoparser = make_routing_packet(module_name(), "scheduler", pd);
