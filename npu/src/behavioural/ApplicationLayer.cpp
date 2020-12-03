@@ -61,7 +61,7 @@ void ApplicationLayer::ApplicationLayerThread(std::size_t thread_id) {
         npulog(cout << "Something went wrong packet and/or pd were null"
                     << endl;)
       }
-      halport->SendtoODE(thread_id, pd, payload);
+      halport->SendtoODE(thread_id, pd, payload);        
     }
 }
 

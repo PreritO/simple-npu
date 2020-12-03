@@ -121,6 +121,7 @@ void Splitter::SplitterThread(std::size_t thread_id) {
         // pd->TTL(4);
 
         // 2.4.1 Get vaddr from FMG
+        // this is to write the payload to memory..
         auto memmessage = std::make_shared<IPC_MEM>();
         memmessage->id(received_packet->id());
         memmessage->RequestType = "ALLOCATE";

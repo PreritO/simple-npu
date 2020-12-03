@@ -178,27 +178,29 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
   // TODO(?) :[Observers]
   // Core is busy if a thread is busy
   // TODO(?) :[Observers]
-  // Request the corresponding Packet from memory
-  cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-        received_pd->payload_target_memname_, "payload_request", received_pd));
+  // Request the corresponding Packet from memory ONLY if it's not a 
+  // recirculated packet (because that will be done at the deparser instead.)
 
-  mtx_payload.lock();
-  payload_requested_pds.emplace(received_pd->id(), received_pd);
-  wait(payload_);
-  mtx_payload.unlock();
-  // Check if packet exists in buffer
-  bool payload_in_buffer = false;
-  while (payload_in_buffer == false) {
-    if (buffer_.find(received_pd->id()) == buffer_.end()) {
-      wait(payload_);
-    } else {
-      payload_in_buffer = true;
-    }
-  }
-  mtx_teu_request_mem.lock();
-  auto received_p = buffer_.at(received_pd->id());
-  mtx_teu_request_mem.unlock();
-  *payload = received_p;
+  // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+  //       received_pd->payload_target_memname_, "payload_request", received_pd));
+
+  // mtx_payload.lock();
+  // payload_requested_pds.emplace(received_pd->id(), received_pd);
+  // wait(payload_);
+  // mtx_payload.unlock();
+  // // Check if packet exists in buffer
+  // bool payload_in_buffer = false;
+  // while (payload_in_buffer == false) {
+  //   if (buffer_.find(received_pd->id()) == buffer_.end()) {
+  //     wait(payload_);
+  //   } else {
+  //     payload_in_buffer = true;
+  //   }
+  // }
+  // mtx_teu_request_mem.lock();
+  // auto received_p = buffer_.at(received_pd->id());
+  // mtx_teu_request_mem.unlock();
+  // *payload = received_p;
   return true;
 }
 
@@ -212,26 +214,35 @@ bool HAL::SendtoODE(std::size_t thread_id,
                     std::shared_ptr<PacketDescriptor> pd,
                     std::shared_ptr<Packet> payload) {
   // Wrap up Execution
-  auto received_p = payload;
+  auto received_p = payload; // this will be NULL here..
   auto received_pd = pd;
 
   if(received_pd->get_packet_time_recirc_() != 0) {
-    // recirculate pkt here..
     auto recirculationmessage = make_routing_packet
         (name + core_number, "rm", received_pd);
     cluster_local_switch_wr_if->put(recirculationmessage);
   } else {
     //  1.  Send to ODE for MEM offload
-    cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-                          received_pd->payload_target_memname_,
-                          "completion_notice", received_p));
-      // 2. Write PacketDescriptor to ODE
-      // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
-      //                           "ode", received_pd));
-    cluster_local_switch_wr_if->put(make_routing_packet
-                                (module_name_, "roc", received_pd));
-    cluster_local_switch_wr_if->put(make_routing_packet
-                            (core_number, "cluster_scheduler", received_pd));
+      //  cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+      //                     received_pd->payload_target_memname_,
+      //                     "completion_notice", received_p));
+        // 2. Write PacketDescriptor to ODE
+        // cluster_local_switch_wr_if->put(make_routing_packet(name + core_number,
+        //                           "ode", received_pd));
+      //  cluster_local_switch_wr_if->put(make_routing_packet
+      //                             (module_name_, "roc", received_pd));
+      cluster_local_switch_wr_if->put(make_routing_packet
+                                   (module_name_, "tm", received_pd));
+      cluster_local_switch_wr_if->put(make_routing_packet
+                              (core_number, "cluster_scheduler", received_pd));
+    // } else {
+    //   // forward this sram hit packet to tm here
+    //   auto to_send = make_routing_packet
+    //                   (name + core_number, "tm", received_pd);
+    //   cluster_local_switch_wr_if->put(to_send);
+    // }
+    //  cluster_local_switch_wr_if->put(make_routing_packet
+    //                           (core_number, "cluster_scheduler", received_pd));
   }
   // for the case where tlmread was called out of order.
   if (!job_queue_tlm_read.empty()) {
