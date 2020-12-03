@@ -71,7 +71,12 @@ void HAL::HAL_PortServiceThread() {
         fetch_copy_response_.notify();
       } else {
         tlmvar_halmutex.lock();
-        tlmvar_halreqs_buffer.emplace(ipcpkt->payload->id(), ipcpkt->payload);
+        auto it = tlmvar_halreqs_buffer.find(ipcpkt->payload->id());
+        if(it != tlmvar_halreqs_buffer.end()) {
+          it->second = ipcpkt->payload;
+        } else {
+          tlmvar_halreqs_buffer.emplace(ipcpkt->payload->id(), ipcpkt->payload);
+        }
         tlmvar_halmutex.unlock();
         tlmvar_halevent.notify();
       }
@@ -312,13 +317,22 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << " and setting time at: " << sc_time_stamp().to_double() << endl;
 
   } else if (key_read && recv_p->bytes_to_allocate != 0) {
-    received_pd->set_packet_time_recirc_(0);
+    received_pd->set_packet_time_recirc_(0.0);
     cout << "pkt id: " << received_pd->id() << " sram hit" << endl;
   }
-  // for a recirc packet, bytes_to_allocate should equal 0.. 
-  job_queue_tlm_read_mutex.lock();
-  job_queue_tlm_read.pop();
-  job_queue_tlm_read_mutex.unlock();
+  // job_queue_tlm_read_mutex.lock();
+  // job_queue_tlm_read.pop();
+  // job_queue_tlm_read_mutex.unlock();
+  // for the case where tlmread was called out of order.
+  if (!job_queue_tlm_read.empty()) {
+    auto tlm_pd = job_queue_tlm_read.front();
+    if (tlm_pd->id() == pktid) {
+      job_queue_tlm_read_mutex.lock();
+      job_queue_tlm_read.pop();
+      job_queue_tlm_read_mutex.unlock();
+    }
+  }
+  
   return recv_p->bytes_to_allocate;
 }
 

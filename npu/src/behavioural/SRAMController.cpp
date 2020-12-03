@@ -82,7 +82,9 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
         // Perform Read operation
         npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
         ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-        ipcpkt->RequestType = "TEST";
+        if (ipcpkt->bytes_to_allocate != 0) {
+          ipcpkt->RequestType = "UPDATE";
+        }
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
