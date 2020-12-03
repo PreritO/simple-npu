@@ -189,8 +189,8 @@ T HashTrie<T>::exactPrefixMatch(BitString iKey, unsigned int iHashKey, HashTable
         iPos = 0;
     }
     if (iEntry->getFlag()) {
-        // This is meant to indicate a recirculation
-        if(iEntry->getKey() == 0) {
+        if(iEntry->getHashKey() == 0) {
+            // This is meant to indicate a recirculation
             return 0;
         }
         if (BitString::intToBitString(iEntry->getKeyBitmap(), iEntry->getKeyLength()) == iKey) {
@@ -276,6 +276,7 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
     if (iEntry->getFlag()) {
         if (BitString::intToBitString(iEntry->getKeyBitmap(), iEntry->getKeyLength()) == iKey) {
             iEntry->setValue(iAction, iActionSize);
+            iEntry->setHashKey(iHashKey);
             return;
         } else {
             HashTableEntry<T> wCurrentEntry(iEntry->getFlag(), iEntry->getKeyBitmap(), iEntry->getKeyLength(), iEntry->getValue(), iEntry->getPtr());
@@ -299,6 +300,7 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
                     wNewSubtrie[1].setFlag(1);
                     wNewSubtrie[1].setKeyBitmap(iKey.toInt());
                     wNewSubtrie[1].setKeyLength((int)iKey.size());
+                    wNewSubtrie[1].setHashKey(iHashKey);
                     wNewSubtrie[1].setValue(iAction, iActionSize);
                     wNewSubtrie[1].setPtr(0, iActionSize);
                 } else {
@@ -306,6 +308,7 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
                     wNewSubtrie[0].setFlag(1);
                     wNewSubtrie[0].setKeyBitmap(iKey.toInt());
                     wNewSubtrie[0].setKeyLength((int)iKey.size());
+                    wNewSubtrie[0].setHashKey(iHashKey);
                     wNewSubtrie[0].setValue(iAction, iActionSize);
                     wNewSubtrie[0].setPtr(0, iActionSize);
                 }
@@ -317,6 +320,7 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
             iEntry->setFlag(1);
             iEntry->setKeyBitmap(iKey.toInt());
             iEntry->setKeyLength(iKey.size());
+            iEntry->setHashKey(iHashKey);
             iEntry->setValue(iAction, iActionSize);
             iEntry->setPtr(0, iActionSize);
         } else {
@@ -335,6 +339,7 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
                         newSubTrie[i].setFlag(1);
                         newSubTrie[i].setKeyBitmap(iKey.toInt());
                         newSubTrie[i].setKeyLength((int)iKey.size());
+                        newSubTrie[i].setHashKey(iHashKey);
                         newSubTrie[i].setValue(iAction, iActionSize);
                         newSubTrie[i].setPtr(0, iActionSize);
                     } else {
@@ -342,6 +347,8 @@ void HashTrie<T>::insert(BitString iKey, T iAction, int iActionSize, unsigned in
                         wSubtrie[j].setFlag(0);
                         newSubTrie[i].setKeyBitmap(wSubtrie[j].getKeyBitmap());
                         newSubTrie[i].setKeyLength(wSubtrie[j].getKeyLength());
+                        //newSubTrie[i].setHashKey(wSubtrie[j].getHashKey());
+                        newSubTrie[i].setHashKey(iHashKey);
                         newSubTrie[i].setValue(wSubtrie[j].getValue(), wSubtrie[j].getValPtrSize());
                         newSubTrie[i].setPtr(wSubtrie[j].getPtr(), wSubtrie[j].getValPtrSize());
                         wSubtrie[j].setPtr(0, 0);

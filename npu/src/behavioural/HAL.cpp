@@ -294,23 +294,6 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
     npu_error("MAP ERROR HAL"+core_number+
               " for id: "+std::to_string(recv_p->id()));
   }
-  if (recv_p->bytes_to_allocate != val_compare) {
-    npulog(
-      cout << "HAL Val compare: @addr" << VirtualAddress
-           << " -->" << recv_p->bytes_to_allocate
-           << " -- " << val_compare
-           << endl
-           << "Req for vaddr:" << memmessage->payload->tlm_address
-           << " got for:" << recv_p->tlm_address
-           << " reqcounteris:" << tlmreqcounter << endl;)
-  }
-  // key_read indicates that we're doing a query for the key in the lookup table 
-  // and because it's now actually being stored in memory, and the value read  
-  // is also from memory, bytes_to_allocate should not be 0 if entry exists at vaddr..
-  // debug:
-  // if (key_read) {
-  //   cout << "Doing a key lookup, SRAM hit: " << recv_p->bytes_to_allocate << endl;
-  // }
   if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)

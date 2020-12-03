@@ -53,7 +53,7 @@ public:
 
     // Getters
     bool getFlag() const;
-    unsigned int getKey() const;
+    unsigned int getHashKey() const;
     unsigned int getKeyBitmap() const;
     T getValue() const;
     HashTableEntry<T>* getPtr() const;
@@ -63,6 +63,7 @@ public:
     // Setters
     void setFlag(bool iFlag);
     void setKeyBitmap(int iKey_Bit);
+    void setHashKey(unsigned int hashKey);
     void setValue(T iVal, int iSize);
     void setPtr(HashTableEntry<T>* iPtr, int iSize);
     void setKeyLength(short iLength);
@@ -77,6 +78,7 @@ private:
     bool mEntryTypeFlag; // 1 - key/value pair, 0 - bitmap/pointer pair
 
     unsigned int mKey_Bitmap;
+    unsigned int mHash_Key;
     HashTableEntry<T>* mPtr;
 
     short mKeyLength;
@@ -117,7 +119,8 @@ mKeyLength(iKeyLength) //4
   this->tlm_addr = addr;
   std::size_t val = 0;
   tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iFlag),this->tlm_addr,0);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1,1);
+  // PO change - we're not actually writing anything to memory here, will only be writing keys to memory
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1,0);
   tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2, 0);
   tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+3, 0);
   tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKeyLength),this->tlm_addr+4, 0);
@@ -174,16 +177,16 @@ bool HashTableEntry<T>::getFlag() const {
 
 // This function is a copy of getKeyBitmap but is called on the lookup path and not the insertion path..
 template <class T>
-unsigned int HashTableEntry<T>::getKey() const {
+unsigned int HashTableEntry<T>::getHashKey() const {
   std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 1);
   if (val == 0) {
-    // indicates packet needs to be recirculated..
+    // indicates packet needs to be recirculated because key doesn't exist
     return 0;
   }
-  if(static_cast<unsigned int>(val) != mKey_Bitmap) {
+  if(static_cast<unsigned int>(val) != mHash_Key) {
     //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
     ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;
-    return mKey_Bitmap;
+    return mHash_Key;
   }
   //return mKey_Bitmap;
   return static_cast<unsigned int>(val);
@@ -192,13 +195,13 @@ unsigned int HashTableEntry<T>::getKey() const {
 template <class T>
 unsigned int HashTableEntry<T>::getKeyBitmap() const {
   std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 0);
-  if(static_cast<unsigned int>(val) != mKey_Bitmap) {
+  //if(static_cast<unsigned int>(val) != mKey_Bitmap) {
     //cout << "getKeyBitmap: Result's don't match. TLM Address: " << this->tlm_addr+1 << endl;
     ///cout << "in memory: " << static_cast<unsigned int>(val) << ", mKey_Bitmap: " << mKey_Bitmap << endl;
-    return mKey_Bitmap;
-  }
-  //return mKey_Bitmap;
-  return static_cast<unsigned int>(val);
+  //  return mKey_Bitmap;
+  //}
+  return mKey_Bitmap;
+  //return static_cast<unsigned int>(val);
 }
 
 template <class T>
@@ -241,7 +244,18 @@ void HashTableEntry<T>::setFlag(bool iFlag) {
 template <class T>
 void HashTableEntry<T>::setKeyBitmap(int iKey_Bit) {
     mKey_Bitmap = iKey_Bit;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1, 1);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1, 0);
+    // std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
+    // if(val != static_cast<std::size_t>(iKey_Bit)) {
+    //   cout << "setKeyBitmap: Result's don't match" << endl;
+    // }
+}
+
+template <class T>
+void HashTableEntry<T>::setHashKey(unsigned int iHashKey) {
+    mHash_Key = iHashKey;
+    // this will write the actual hashed key to memory
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iHashKey),this->tlm_addr+1, 1);
     // std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
     // if(val != static_cast<std::size_t>(iKey_Bit)) {
     //   cout << "setKeyBitmap: Result's don't match" << endl;

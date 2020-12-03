@@ -82,13 +82,6 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
         // Perform Read operation
         npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
         ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-        // if(ipcpkt->tlm_address > mem_size) {
-        //   npulog(cout << "TLM Address in SRAM read is larger than mem_size for tlm req: " << ipcpkt->id() << endl;)
-        //   ipcpkt->bytes_to_allocate = 0;
-        // } else {
-        //   npulog(cout << "Reading from SRAM for tlm req: " << ipcpkt->id() << endl;)
-        //   ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
-        // }
         // Time to reply the request figure out who sent it
         if (ipcpkt_SentFrom.find(core_prefix) != std::string::npos) {
           // Check if this is an On Chip or Off chip
