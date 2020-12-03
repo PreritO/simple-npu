@@ -47,7 +47,7 @@ class ControlPlaneAgentHAL:
  public:
   void init();
 
-  virtual void tlmwrite(int VirtualAddress, int data, TlmType size);
+  virtual void tlmwrite(int VirtualAddress, int data, TlmType size, bool key_insert);
   virtual TlmType tlmread(int VirtualAddress);
   virtual TlmType tlmallocate(int BytestoAllocate);
   MemoryUtility meminfo;

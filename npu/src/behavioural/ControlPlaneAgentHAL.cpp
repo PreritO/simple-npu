@@ -66,7 +66,7 @@ ControlPlaneAgentHAL::tlmallocate(int BytestoAllocate) {
 }
 
 void
-ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
+ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size, bool key_insert) {
   // 1. Find Where does this write go ?
   // memdecode result = meminfo.decodevirtual(VirtualAddress);
   // // 2. Write to mem + shadow edmems if decode return addr lies in edram region
@@ -106,19 +106,22 @@ ControlPlaneAgentHAL::tlmwrite(int VirtualAddress, int data, TlmType size) {
 
   // Let's write everything to off-chip by default here and then 
   // just use the SRAM as an LRU/FIFO cache when the packets do a TLM Read
-  int newVirtualAddress = VirtualAddress;
-  memdecode result = meminfo.decodevirtual(VirtualAddress);
-  if (result.mappingdecode) {
-    uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
-    newVirtualAddress+=AddressMapSize;
-  } 
-  auto memmessage = std::make_shared<IPC_MEM>();
-  memmessage->id(3146);
-  memmessage->RequestType = "WRITE";
-  memmessage->bytes_to_allocate = data;
-  memmessage->tlm_address = newVirtualAddress;
-  ocn_wr_if->write(make_routing_packet
-                     (GetParent()->module_name(), "mct_0_mem", memmessage));
+  // int newVirtualAddress = VirtualAddress;
+  // memdecode result = meminfo.decodevirtual(VirtualAddress);
+  // if (result.mappingdecode) {
+  //   uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
+  //   newVirtualAddress+=AddressMapSize;
+  // } 
+
+  if (key_insert) {
+    auto memmessage = std::make_shared<IPC_MEM>();
+    memmessage->id(3146);
+    memmessage->RequestType = "WRITE";
+    memmessage->bytes_to_allocate = data;
+    memmessage->tlm_address = VirtualAddress;
+    ocn_wr_if->write(make_routing_packet
+                      (GetParent()->module_name(), "mct_0_mem", memmessage));
+    }
   return;
 }
 
@@ -154,16 +157,16 @@ ControlPlaneAgentHAL::tlmread(int VirtualAddress) {
 
   // Let's assume that cp_agent ever only reads/writes from off-chip 
   // memory to limit cache pollution before packets flow 
-  int newVirtualAddress = VirtualAddress;
-  memdecode result = meminfo.decodevirtual(VirtualAddress);
-  if (result.mappingdecode) {
-    uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
-    newVirtualAddress+=AddressMapSize;
-  } 
+  // int newVirtualAddress = VirtualAddress;
+  // memdecode result = meminfo.decodevirtual(VirtualAddress);
+  // if (result.mappingdecode) {
+  //   uint64_t AddressMapSize = meminfo.getMemorySize(result.memname);
+  //   newVirtualAddress+=AddressMapSize;
+  // } 
   auto memmessage = std::make_shared<IPC_MEM>();
   memmessage->id(3148);
   memmessage->RequestType = "READ";
-  memmessage->tlm_address = newVirtualAddress;
+  memmessage->tlm_address = VirtualAddress;
   ocn_wr_if->write(make_routing_packet
                      (GetParent()->module_name(), "mct_0_mem", memmessage));
   auto received_tr = unbox_routing_packet<IPC_MEM>(ocn_rd_if->get());

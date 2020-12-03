@@ -85,6 +85,9 @@ void HAL::HAL_PortServiceThread() {
       job_queue_tlm_read_mutex.lock();
       job_queue_tlm_read.push(received_pd->payload);
       job_queue_tlm_read_mutex.unlock();
+      if (received_pd->payload->id() == 2) {
+        cout << "break " << endl;
+      }
       evt_.notify();  // Kickstart the threads
       increment_counter(AssignedPDs);
     } else if (auto received_p =
@@ -161,6 +164,9 @@ bool HAL::GetJobfromSchedular(std::size_t thread_id,
   // Get PacketDescriptor from job queue
   auto received_pd = job_queue_.pop();
   *pd = received_pd;
+  if (received_pd->id() == 2) {
+    cout << "break" << endl;
+  }
   if(received_pd->get_packet_time_recirc_() != 0) {
     return true;
   }
@@ -248,11 +254,14 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   if (!key_read) {
     return 0;
   }
+  if (job_queue_tlm_read.empty()) {
+    return 0;
+  }
   job_queue_tlm_read_mutex.lock();
   auto received_pd = job_queue_tlm_read.front();
   job_queue_tlm_read_mutex.unlock();
-  if (received_pd == NULL) {
-    return 0;
+  if (received_pd->id() == 2) {
+    cout << "break" << endl;
   }
   // 1. Virtual Address
   TlmType vaddr = VirtualAddress;

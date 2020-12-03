@@ -40,14 +40,14 @@ public SRAMMemorySIM {
     // }
     // Read or Write depending upon command.
     if ( cmd == tlm::TLM_READ_COMMAND ) {
-      int data = 0;
+      unsigned int data = 0;
       if(cache.exists(adr)) {
         data = cache.get(adr);
       }
       memcpy(dataptr, &data, len);
         //outlog<<"READ Command, addr: "<<adr<<endl;  // NOLINT
     } else if ( cmd == tlm::TLM_WRITE_COMMAND ) {
-      int tmp;
+      unsigned tmp;
       memcpy(&tmp, dataptr, len);
       cache.put(adr, tmp);
       //outlog<<"WRITE Command, addr: "<<adr<<endl;  // NOLINT
@@ -65,7 +65,7 @@ public SRAMMemorySIM {
   //std::unordered_map<sc_dt::uint64, unsigned char*> mem;
   //std::deque<sc_dt::uint64> dq;
   //std::ofstream outlog;
-  cache::lru_cache<sc_dt::uint64, int> cache;
+  cache::lru_cache<sc_dt::uint64, unsigned int> cache;
 };
 
 /*
@@ -88,7 +88,7 @@ SRAMMemory<T>::SRAMMemory
   //   for (int i = 0; i < SIZE; i++) {
   //     mem.push_back(0xAA000000);
   //   }
-  cache = cache::lru_cache<sc_dt::uint64, int>(SIZE);
+  cache = cache::lru_cache<sc_dt::uint64, unsigned int>(SIZE);
 }
 
 #endif  // BEHAVIOURAL_MEMORY_H_

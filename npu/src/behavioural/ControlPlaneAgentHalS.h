@@ -39,7 +39,7 @@ class ControlPlaneAgentHalS : public sc_interface {
  public:
     /* User Logic - Virtual Functions for interface go here */
     typedef std::size_t TlmType;
-    virtual void tlmwrite(int VirtualAddress, int data, TlmType size) = 0;
+    virtual void tlmwrite(int VirtualAddress, int data, TlmType size, bool key_insert) = 0;
     virtual TlmType tlmread(int VirtualAddress) = 0;
     virtual TlmType tlmallocate(int BytestoAllocate) = 0;
 };

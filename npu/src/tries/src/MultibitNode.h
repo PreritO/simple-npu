@@ -101,11 +101,11 @@ template <class T>
 MultibitNode<T>::MultibitNode() : mStride(0), mNextNodePtr(0), mLength(0), mActionFlag(false) {
   int addr = tlmsingelton::getInstance().tlmvarptr->allocate_mem(32*5); //write_mem and Construct in tlm memory
   this->tlm_addr = addr;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mStride),this->tlm_addr);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mNextNodePtr),this->tlm_addr+1);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr+2);//mAction
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mLength),this->tlm_addr+3);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mActionFlag),this->tlm_addr+4);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mStride),this->tlm_addr, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mNextNodePtr),this->tlm_addr+1, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr+2, 0);//mAction
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mLength),this->tlm_addr+3, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mActionFlag),this->tlm_addr+4, 0);
 }
 
 /// ============================
@@ -126,13 +126,13 @@ MultibitNode<T>::~MultibitNode() {}
 template <class T>
 void MultibitNode<T>::setStride(unsigned int iStride) {
   mStride = iStride;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iStride),this->tlm_addr);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iStride),this->tlm_addr, 0);
 }
 
 template <class T>
 void MultibitNode<T>::setNextNodePtr(MultibitNode *iNextNode) {
     mNextNodePtr = iNextNode;
-    tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iNextNode),this->tlm_addr+1);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iNextNode),this->tlm_addr+1, 0);
 }
 
 template <class T>
@@ -140,20 +140,20 @@ void MultibitNode<T>::setAction(T iAction, int iActionSize, bool iActionFlag) {
     mAction = iAction;
     mActionSize = iActionSize;
     mActionFlag = iActionFlag;
-    tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr+2);//mAction
-    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iActionFlag),this->tlm_addr+4);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr+2, 0);//mAction
+    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iActionFlag),this->tlm_addr+4, 0);
 }
 
 template <class T>
 void MultibitNode<T>::setActionFlag(bool iFlag) {
     mActionFlag = iFlag;
-    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iFlag),this->tlm_addr+4);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iFlag),this->tlm_addr+4, 0);
 }
 
 template <class T>
 void MultibitNode<T>::setLength(unsigned int iLength) {
     mLength = iLength;
-    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+3);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+3, 0);
 }
 
 /// ============================

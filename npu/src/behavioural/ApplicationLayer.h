@@ -46,6 +46,8 @@ class ApplicationLayer: public ApplicationLayerSIM {
   void init();
   void do_processing(std::size_t thread_id,
                      PacketDescriptor& pd, Packet& payload);
+  void do_processing(std::size_t thread_id,
+                     PacketDescriptor& pd);
  private:
   void ApplicationLayerThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;

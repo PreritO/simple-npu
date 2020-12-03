@@ -103,12 +103,12 @@ std::size_t tlmvar::allocate_mem(int size_of_data) {
   }
 }
 
-void tlmvar::write_mem(std::size_t data_to_allocate, int addr) {
-  allocate(data_to_allocate, addr);
+void tlmvar::write_mem(std::size_t data_to_allocate, int addr, bool key_insert) {
+  allocate(data_to_allocate, addr, key_insert);
   return;
 }
 // Write function
-void tlmvar::allocate(std::size_t data_to_allocate, int addr) {
+void tlmvar::allocate(std::size_t data_to_allocate, int addr, bool key_insert) {
   sc_process_handle this_process = sc_get_current_process_handle();
   sc_object* current_scmodule = this_process.get_parent_object();
   const char* currentmodulename = current_scmodule->basename();
@@ -129,7 +129,7 @@ void tlmvar::allocate(std::size_t data_to_allocate, int addr) {
       cpagentptr = dynamic_cast<ControlPlaneAgent*>(current_scmodule);
       // 2. Call the HAL Function to Wrtie
       // Todo: Dont hardcode it
-      cpagentptr->cpagenthal->tlmwrite(addr, data_to_allocate, 0);
+      cpagentptr->cpagenthal->tlmwrite(addr, data_to_allocate, 0, key_insert);
       return;
     } else {
       std::cerr

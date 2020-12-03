@@ -52,6 +52,9 @@ void ApplicationLayer::ApplicationLayerThread(std::size_t thread_id) {
       std::shared_ptr<Packet> payload;
       // TODO(Lemniscate): Add status checking on return from HAL
       halport->GetJobfromSchedular(thread_id, &pd, &payload);
+      if (pd && (payload == NULL)) {
+        do_processing(thread_id, std::ref(*pd.get()));         
+      }
       if (pd && payload) {
         do_processing(thread_id, std::ref(*pd.get()), std::ref(*payload.get()));
       } else {
@@ -69,5 +72,13 @@ void ApplicationLayer::do_processing(std::size_t thread_id,
   auto received_p = call_application(ApplicationName)(counter, std::ref(pd),
       std::ref(payload), nullptr);
   payload = received_p;
+  wait(counter, SC_NS);
+}
+
+void ApplicationLayer::do_processing(std::size_t thread_id,
+                                     PacketDescriptor& pd) {
+  uint32_t counter = 0;
+  std::string ApplicationName = SimulationParameters["application_name"].get();
+  auto received_pd = call_application_pd(ApplicationName)(counter, std::ref(pd), nullptr);
   wait(counter, SC_NS);
 }

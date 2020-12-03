@@ -42,17 +42,17 @@
 RangeTrieNode::RangeTrieNode() : mComparisons(0), mAddressAlignment(0), mCommonPrefix(0), mCommonPrefixLength(0), mCommonSuffix(0), mCommonSuffixLength(0), mCompareLength(0), mComparePosition(0), mNextNodes(0), mNumOfComparisons(0), mRegionIDs(0) {
   int addr = tlmsingelton::getInstance().tlmvarptr->allocate_mem(32*11); //Allocate and Construct in tlm memory
   std::size_t val =0;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+1);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+2);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+3);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+4);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+5);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+6);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+7);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+8);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+9);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+10);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+1, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+2, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+3, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+4, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+5, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+6, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+7, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+8, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+9, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr+10, 0);
 }
 
 RangeTrieNode::~RangeTrieNode() {
@@ -128,57 +128,57 @@ int* RangeTrieNode::getRegionIDs() const {
 
 // Setters
 void RangeTrieNode::setComparisons(unsigned int* iComparisons) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iComparisons),this->tlm_addr);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iComparisons),this->tlm_addr, 0);
   mComparisons = iComparisons;
 }
 
 void RangeTrieNode::setNumOfComparisons(unsigned int iNum) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iNum),this->tlm_addr+1);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iNum),this->tlm_addr+1, 0);
   mNumOfComparisons = iNum;
 }
 
 void RangeTrieNode::setComparePosition(unsigned int iPos) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iPos),this->tlm_addr+2);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iPos),this->tlm_addr+2, 0);
   mComparePosition = iPos;
 }
 
 void RangeTrieNode::setCompareLength(unsigned int iLength) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+3);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+3, 0);
   mCompareLength = iLength;
 }
 
 void RangeTrieNode::setCommonPrefix(int iPrefix) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iPrefix),this->tlm_addr+4);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iPrefix),this->tlm_addr+4, 0);
   mCommonPrefix = iPrefix;
 }
 
 void RangeTrieNode::setCommonPrefixLength(unsigned int iLength) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+5);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+5, 0);
   mCommonPrefixLength = iLength;
 }
 
 void RangeTrieNode::setCommonSuffix(int iSuffix) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iSuffix),this->tlm_addr+6);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iSuffix),this->tlm_addr+6, 0);
   mCommonSuffix = iSuffix;
 }
 
 void RangeTrieNode::setCommonSuffixLength(unsigned int iLength) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+7);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iLength),this->tlm_addr+7, 0);
   mCommonSuffixLength = iLength;
 }
 
 void RangeTrieNode::setAddressAlignment(bool iAlign) {
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iAlign),this->tlm_addr+8);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iAlign),this->tlm_addr+8, 0);
   mAddressAlignment = iAlign;
 }
 
 void RangeTrieNode::setNextNodes(RangeTrieNode *iNodes) {
-  tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNodes),this->tlm_addr+9);
+  tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNodes),this->tlm_addr+9, 0);
   mNextNodes = iNodes;
 }
 
 void RangeTrieNode::setRegionIDs(int *iIDs) {
-  tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iIDs),this->tlm_addr+10);
+  tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iIDs),this->tlm_addr+10, 0);
   mRegionIDs = iIDs;
 }
 

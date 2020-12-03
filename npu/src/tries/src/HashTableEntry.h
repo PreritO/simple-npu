@@ -116,11 +116,11 @@ mKeyLength(iKeyLength) //4
   int addr = tlmsingelton::getInstance().tlmvarptr->allocate_mem(32*5); //Allocate and Construct in tlm memory
   this->tlm_addr = addr;
   std::size_t val = 0;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iFlag),this->tlm_addr);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+3);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKeyLength),this->tlm_addr+4);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iFlag),this->tlm_addr,0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1,1);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+3, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKeyLength),this->tlm_addr+4, 0);
 }
 
 template <class T>
@@ -128,11 +128,11 @@ HashTableEntry<T>::HashTableEntry() : mEntryTypeFlag(0), mKey_Bitmap(0), mKeyLen
   int addr = tlmsingelton::getInstance().tlmvarptr->allocate_mem(32*5); //Allocate and Construct in tlm memory
   this->tlm_addr = addr;
   std::size_t val = 0;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+3);
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+4);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+3, 0);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+4, 0);
 }
 
 /// ==========================
@@ -235,13 +235,13 @@ template <class T>
 void HashTableEntry<T>::setFlag(bool iFlag) {
 
     mEntryTypeFlag = iFlag;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iFlag),this->tlm_addr);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iFlag),this->tlm_addr, 0);
 }
 
 template <class T>
 void HashTableEntry<T>::setKeyBitmap(int iKey_Bit) {
     mKey_Bitmap = iKey_Bit;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey_Bit),this->tlm_addr+1, 1);
     // std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
     // if(val != static_cast<std::size_t>(iKey_Bit)) {
     //   cout << "setKeyBitmap: Result's don't match" << endl;
@@ -252,20 +252,20 @@ template <class T>
 void HashTableEntry<T>::setValue(T iVal, int iSize) {
     mValue = iVal;
     mVal_PtrSize = iSize;
-    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+2);
+    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+2, 0);
 }
 
 template <class T>
 void HashTableEntry<T>::setPtr(HashTableEntry<T>* iPtr, int iSize) {
     mPtr = iPtr;
     mVal_PtrSize = iSize;
-    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+3);
+    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+3, 0);
 }
 
 template <class T>
 void HashTableEntry<T>::setKeyLength(short iLength) {
     mKeyLength = iLength;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iLength),this->tlm_addr+4);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iLength),this->tlm_addr+4, 0);
 }
 
 template <class T>

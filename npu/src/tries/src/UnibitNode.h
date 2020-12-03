@@ -103,13 +103,13 @@ UnibitNode<T>::UnibitNode() : mActionFlag(false), mOneNodePtr(0), mZeroNodePtr(0
   this->tlm_addr = addr;
   std::size_t val = 0;
   // cout<<"Default Construction New Node1.1@"<<this->tlm_addr<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(val,this->tlm_addr, 0);
   // cout<<"Default Construction New Node1.2@"<<this->tlm_addr+1<<" val:"<<reinterpret_cast<std::size_t>(mOneNodePtr)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mOneNodePtr),this->tlm_addr+1);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mOneNodePtr),this->tlm_addr+1, 0);
   // cout<<"Default Construction New Node1.3@"<<this->tlm_addr+2<<" val:"<<reinterpret_cast<std::size_t>(mZeroNodePtr)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mZeroNodePtr),this->tlm_addr+2);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(mZeroNodePtr),this->tlm_addr+2, 0);
   // cout<<"Default Construction New Node1.4@"<<this->tlm_addr+3<<" val:"<<static_cast<std::size_t>(mActionFlag)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mActionFlag),this->tlm_addr+3);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(mActionFlag),this->tlm_addr+3, 0);
   // cout<<"Default Construction New Node1.5 Constructed"<<addr<<endl;
 
 }
@@ -129,13 +129,13 @@ mZeroNodePtr(iZeroNodePtr) {
 #endif
   this->tlm_addr = addr;
   // cout<<"New Node1.1@"<<this->tlm_addr<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(0,this->tlm_addr, 0);
   // cout<<"New Node1.2@"<<this->tlm_addr+1<<" val:"<<reinterpret_cast<std::size_t>(iOneNodePtr)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iOneNodePtr),this->tlm_addr+1);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iOneNodePtr),this->tlm_addr+1, 0);
   // cout<<"New Node1.3@"<<this->tlm_addr+2<<" val:"<<reinterpret_cast<std::size_t>(iZeroNodePtr)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iZeroNodePtr),this->tlm_addr+2);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(reinterpret_cast<std::size_t>(iZeroNodePtr),this->tlm_addr+2, 0);
   // cout<<"New Node1.4@"<<this->tlm_addr+3<<" val:"<<static_cast<std::size_t>(iActionFlag)<<endl;
-  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iActionFlag),this->tlm_addr+3);
+  tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iActionFlag),this->tlm_addr+3, 0);
   // cout<<"New Node1.5 Constructed"<<addr<<endl;
 
 }
@@ -248,7 +248,7 @@ template <class T>
 void UnibitNode<T>::setOneNode(UnibitNode* iNewNode) {
     mOneNodePtr = iNewNode;
     // cout<<"setOneNode"<<this->tlm_addr+1<<endl;
-    tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNewNode),this->tlm_addr+1);
+    tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNewNode),this->tlm_addr+1, 0);
     std::size_t tempq=reinterpret_cast<std::size_t>(iNewNode);
     // cout<<"SetOneNodeDiff: "<<reinterpret_cast<std::size_t>(iNewNode)<<" -- "<<mOneNodePtr<<" -- "<<reinterpret_cast<UnibitNode<T>*>(tempq)<<" @tlmaddr:"<<this->tlm_addr+1<<endl;
 }
@@ -257,7 +257,7 @@ template <class T>
 void UnibitNode<T>::setZeroNode(UnibitNode* iNewNode) {
     mZeroNodePtr = iNewNode;
     // cout<<"setZeroNode"<<this->tlm_addr+2<<endl;
-    tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNewNode),this->tlm_addr+2);
+    tlmsingelton::getInstance().tlmvarptr->allocate(reinterpret_cast<std::size_t>(iNewNode),this->tlm_addr+2, 0);
 
 }
 
@@ -269,14 +269,14 @@ void UnibitNode<T>::setAction(T iNewAction, int iActionSize, bool iActionFlag) {
     mAction = temp;
     mActionSize = iActionSize;
     mActionFlag = iActionFlag;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(mActionFlag),this->tlm_addr+3);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(mActionFlag),this->tlm_addr+3, 0);
 }
 
 template <class T>
 void UnibitNode<T>::setActionFlag(bool iFlag) {
     mActionFlag = iFlag;
     // cout<<"setActionFlag"<<this->tlm_addr+2<<endl;
-    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iFlag),this->tlm_addr+3);
+    tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iFlag),this->tlm_addr+3, 0);
 
 }
 

@@ -58,9 +58,9 @@ LCNode::LCNode(int iBranch, int iSkip) : mBranchFactor(iBranch), mSkip(iSkip), m
 
 	this->tlm_addr = addr;
 
-	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iBranch),this->tlm_addr);
-	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iSkip),this->tlm_addr+1);
-	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(0),this->tlm_addr+2);
+	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iBranch),this->tlm_addr, 0);
+	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iSkip),this->tlm_addr+1, 0);
+	 tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(0),this->tlm_addr+2, 0);
 }
 
 /// ==================================
@@ -142,7 +142,7 @@ void LCNode::setBranchFactor(int iBranch) {
 			<<" |-Set setBranchFactor	:"<<static_cast<std::size_t>(mBranchFactor)<<endl;
 	#endif
 
-	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iBranch),this->tlm_addr);
+	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iBranch),this->tlm_addr, 0);
 
 }
 
@@ -155,7 +155,7 @@ void LCNode::setSkip(int iSkip) {
 			<<" |-Set setSkip   :"<<static_cast<std::size_t>(mSkip)<<endl;
 	#endif
 
-	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iSkip),this->tlm_addr+1);
+	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iSkip),this->tlm_addr+1, 0);
 }
 
 void LCNode::setLeftNodePos(int iPos) {
@@ -167,7 +167,7 @@ void LCNode::setLeftNodePos(int iPos) {
 			<<" |-Set setLeftNodePos	:"<<static_cast<std::size_t>(mLeftNodePos)<<endl;
 	#endif
 
-	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iPos),this->tlm_addr+2);
+	tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iPos),this->tlm_addr+2, 0);
 
 }
 

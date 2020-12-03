@@ -59,8 +59,14 @@ Packet& P4Application(uint32_t &counter,
   auto p4_packet = np.header().get();
   cout << "Processing Packet: " << p4_packet->get_packet_id()<< endl;
   p4->lock.read_lock();
-  ingress->apply(p4_packet);
-  // TODO(gordon) if( ! np.drop()){
+  //bool lookup = false;
+  //while(!lookup) {
+    ingress->apply(p4_packet);
+    // TODO(gordon) if( ! np.drop()){
+  //  if(np.get_packet_time_recirc_() == 0) {
+  //    lookup = true;
+  //  }
+  //}
   egress->apply(p4_packet);
   p4->lock.read_unlock();
   /*
@@ -74,4 +80,35 @@ Packet& P4Application(uint32_t &counter,
   return p;
 }
 
+PacketDescriptor& P4ApplicationPD(uint32_t &counter,
+    PacketDescriptor &np, void *args = 0) {
+  static auto p4 = P4::get("npu");
+  static auto ingress = p4->get_pipeline("ingress");
+  static auto egress  = p4->get_pipeline("egress");
+  auto p4_packet = np.header().get();
+  cout << "Handling Recirculated Packet: " << p4_packet->get_packet_id()<< endl;
+  p4->lock.read_lock();
+  //bool lookup = false;
+  //while(!lookup) {
+    ingress->apply(p4_packet);
+    // TODO(gordon) if( ! np.drop()){
+  //  if(np.get_packet_time_recirc_() == 0) {
+  //    lookup = true;
+  //  }
+  //}
+  egress->apply(p4_packet);
+  p4->lock.read_unlock();
+  /*
+  // We re-attach the full payload for the table application, incase it is
+  // needed by the P4 program (to calculate a TCP checksum, for example)
+  np.swapPayload(p.data().data(), p.data().size(), &payload, &length);
+  bool ret = p4_do_table_application(np.header().get());
+  // One processing is complete, we restore the original empty payload
+  np.swapPayload(payload, length);
+  */
+  return np;
+}
+
+
 static int ts = register_application("P4Application", P4Application);
+static int ts_pd = register_application_pd("P4Application", P4ApplicationPD);
