@@ -93,10 +93,13 @@ class P4 : public bm::Switch {
 
  private:
   static std::map<std::string, P4*> instances;
+  //removing for now while testing if the factory works
+  //static std::map<std::string, MemAwareExactMap> exact_map;
   static std::shared_ptr<MemAwareLookupStructureFactory> factory;
 
  public:
   static P4 * get(std::string name);
+  static P4 * get_exact(std::string name);
 
  private:
   // This class should only be constructed through the

@@ -20,6 +20,12 @@ HashTableEntry.cpp
 HashTableEntry.h
 HashTrie.cpp
 HashTrie.h
+LevelHash.cpp
+LevelHash.h
+LevelHashBucket.cpp
+LevelHashBucket.h
+LevelHashEntry.cpp
+LevelHashEntry.h
 LCNode.cpp
 LCNode.h
 LCTrie.cpp
