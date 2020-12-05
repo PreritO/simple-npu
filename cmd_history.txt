@@ -1,0 +1,4 @@
+1. valgrind  --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./npu-sim -c Configs/ -Xp4 apps/nat/nat.json -Xtpop apps/nat/nat_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v normal
+
+2. gdb --args ./npu-sim -c Configs/ -Xp4 apps/nat/nat.json -Xtpop apps/nat/nat_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v normal
+

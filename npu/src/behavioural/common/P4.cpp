@@ -153,7 +153,7 @@ namespace {  // anonymous
                if (levelhash) {
                    levelhash->level_insert(byte_container_2_bitstring(key.data), Value(handle), sizeof(bm::internal_handle_t));
                } else {
-                   levelhash = new LevelHash<Value>(5, 10);
+                   levelhash = new LevelHash<Value>(10, 10);
                    cout << "after level has init" << endl;
                    levelhash->level_insert(byte_container_2_bitstring(key.data), Value(handle), sizeof(bm::internal_handle_t));
                }

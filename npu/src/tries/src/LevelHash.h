@@ -48,7 +48,7 @@ class LevelHash {
 
 	private:
 		//two levels, second dim set at runtime
-		std::vector<std::vector<LevelHashBucket<T> > > mRoot;
+		std::vector<std::vector<LevelHashBucket<T>>> mRoot;
         //LevelHashBucket<T> *mRoot[2];
 		//TODO come back, comes from their hashtrie implementation
 		T mDefaultAction;
@@ -100,22 +100,12 @@ LevelHash<T>::LevelHash(uint64_t size, uint64_t len) {
 
 	generate_seeds();
 	//create top level 
-    // vector init
-    std::vector<LevelHashBucket<T> > tmpTop;
-    for (int i = 0; i<addr_capacity; i++) {
-        LevelHashBucket<T>* newBucket = new LevelHashBucket<T>(); 
-        tmpTop.push_back(*newBucket);
-    }
-    mRoot.push_back(tmpTop);
-    cout << "before vector init!\n" << endl;
+    std::vector<LevelHashBucket<T>> topLevel(addr_capacity);
+    std::vector<LevelHashBucket<T>> bottomLevel(addr_capacity/2);
+    mRoot.push_back(topLevel);
+    mRoot.push_back(bottomLevel);
 
-    std::vector<LevelHashBucket<T> > tmpBottom;
-    for (int i = 0; i<addr_capacity/2; i++) {
-        LevelHashBucket<T>* newBucket = new LevelHashBucket<T>(); 
-        tmpBottom.push_back(*newBucket);
-    }
-    mRoot.push_back(tmpBottom);
-	
+
     // mRoot[0] = new LevelHashBucket<T>[addr_capacity];
 	// mRoot[1] = new LevelHashBucket<T>[addr_capacity/2];
 	//starts off empty
