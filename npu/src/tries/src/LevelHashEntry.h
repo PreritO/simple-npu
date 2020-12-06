@@ -70,11 +70,11 @@ LevelHashEntry<T>::LevelHashEntry(BitString iKey, T iVal, uint8_t* iStoragePtr) 
     std::size_t val = 0;
     //actually writing the key
     //tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(iKey),this->tlm_addr);
-    tlmsingelton::getInstance().tlmvarptr->write_mem(iKey.toInt(),this->tlm_addr);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(iKey.toInt(),this->tlm_addr, 1);
     //filler zero values
     //addresssing is based on the virtual address given by the memory controller
-    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1); //val
-    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2);
+    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1, 0); //val
+    tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2, 0);
 }
 template <class T>
 LevelHashEntry<T>::LevelHashEntry(){
@@ -87,9 +87,9 @@ LevelHashEntry<T>::LevelHashEntry(){
         this->tlm_addr = addr; // wont work
         cout << "allocated address " << this->tlm_addr <<  endl;
         std::size_t val = 0;
-        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr);
-        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1);
-        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2);
+        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr, 1);
+        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+1, 0);
+        tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2, 0);
     }
 /// ==========================
 //
@@ -120,19 +120,19 @@ LevelHashEntry<T>::~LevelHashEntry() {
 /// ==========================
 template <class T>
 BitString LevelHashEntry<T>::getKey() const {
-    std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr);
+    std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 1);
     // let's first return mKey to verify correctness before actually getting from memory
     return mKey;
     //return static_cast<unsigned int>(val);
 }
 template <class T>
 T LevelHashEntry<T>::getValue() const {
-    std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
+    std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1, 0);
     return mValue;
 }
 template <class T>
 uint8_t* LevelHashEntry<T>::getStoragePtr() const {
-    std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+2);
+    std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+2, 0);
     return mStoragePtr;
 }
 template <class T>
@@ -147,18 +147,18 @@ int LevelHashEntry<T>::getAddr() const {
 template <class T>
 void LevelHashEntry<T>::setKey(BitString iKey) {
     mKey = iKey;
-    tlmsingelton::getInstance().tlmvarptr->allocate(iKey.toInt(),this->tlm_addr);
+    tlmsingelton::getInstance().tlmvarptr->allocate(iKey.toInt(),this->tlm_addr), 1;
 }
 template <class T>
 void LevelHashEntry<T>::setValue(T iVal) {
     mValue = iVal;
     // mVal_PtrSize = iSize;
-    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+1);
+    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+1, 0);
 }
 template <class T>
 void LevelHashEntry<T>::setStoragePtr(uint8_t* storagePtr) {
     mStoragePtr = storagePtr;
-    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+2);
+    tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+2, 0);
 }
 template <class T>
 void LevelHashEntry<T>::setAddr(int addr) {
