@@ -51,7 +51,8 @@ class LevelHashBucket {
 //info will be filled in later
 template <class T>
 LevelHashBucket<T>::LevelHashBucket() {
-    ASSOC_NUM = 2;
+    // ASSOC_NUM = 2;
+    cout << "called const" << endl;
     //slots.resize(ASSOC_NUM);
     //tokens.resize(ASSOC_NUM);
 }

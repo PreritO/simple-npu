@@ -75,10 +75,10 @@ LevelHashEntry<T>::LevelHashEntry(BitString iKey, T iVal, uint8_t* iStoragePtr) 
     tlmsingelton::getInstance().tlmvarptr->write_mem(static_cast<std::size_t>(val),this->tlm_addr+2);
 }
 template <class T>
-LevelHashEntry<T>::LevelHashEntry() : 
-    mKey(0), 
-    mValue(0), 
-    mStoragePtr(0) {
+LevelHashEntry<T>::LevelHashEntry(){
+        this->mKey = BitString();
+        this->mStoragePtr = nullptr;
+        this->mValue = 0; 
         // the hashToAdr map should have a reference from iKey to addr 
         // TODO - come back to this
         int addr = tlmsingelton::getInstance().tlmvarptr->allocate_mem(32*5); //Allocate and Construct in tlm memory
