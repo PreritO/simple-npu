@@ -96,19 +96,20 @@ LevelHashEntry<T>::LevelHashEntry() :
 template <class T>
 LevelHashEntry<T>::LevelHashEntry(const LevelHashEntry<T>& iCopy) : 
     mKey(iCopy.getKey()), mValue(iCopy.getValue()), mStoragePtr(iCopy.getStoragePtr()) {}
-    /// ==========================
-    //
-    //  Destructor
-    //
-    /// ==========================
-    template <class T>
-    LevelHashEntry<T>::~LevelHashEntry() {
-        /*    if (mEntryTypeFlag == 0 && mPtr != 0) {
-              delete [] mPtr;
-              mPtr = 0;
-              }
-              */
-    }
+
+/// ==========================
+//
+//  Destructor
+//
+/// ==========================
+template <class T>
+LevelHashEntry<T>::~LevelHashEntry() {
+    /*    if (mEntryTypeFlag == 0 && mPtr != 0) {
+          delete [] mPtr;
+          mPtr = 0;
+          }
+          */
+}
 /// ==========================
 //
 //  Getters

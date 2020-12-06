@@ -6,6 +6,7 @@
 #define __Data_Structure__LevelHashBucket__
 
 #include <functional>
+#include <vector>
 #include "systemc.h"
 #include "LevelHashEntry.h"
 
@@ -29,8 +30,10 @@ class LevelHashBucket {
     private:
         //copy from level hash
         int ASSOC_NUM;
-        LevelHashEntry<T> slots[];
-        uint8_t tokens[];
+        //std::vector<LevelHashEntry<T>> slots;
+        //std::vector<uint8_t> tokens;
+        LevelHashEntry<T> slots[2];
+        uint8_t tokens[2];
 };
 
 
@@ -49,6 +52,8 @@ class LevelHashBucket {
 template <class T>
 LevelHashBucket<T>::LevelHashBucket() {
     ASSOC_NUM = 2;
+    //slots.resize(ASSOC_NUM);
+    //tokens.resize(ASSOC_NUM);
 }
 /// ==========================
 //

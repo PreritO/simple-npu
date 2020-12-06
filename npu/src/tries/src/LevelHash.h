@@ -105,7 +105,8 @@ LevelHash<T>::LevelHash(uint64_t size, uint64_t len) {
     //mRoot.push_back(topLevel);
     //mRoot.push_back(bottomLevel);
     mRoot.resize(2);
-    for(int i = 0; i < 2; i++) {
+    int i;
+    for(i = 0; i < 2; i++) {
         mRoot[i].resize(addr_capacity/(i + 1));
     }
     // mRoot[0] = new LevelHashBucket<T>[addr_capacity];
