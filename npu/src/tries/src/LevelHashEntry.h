@@ -76,7 +76,7 @@ LevelHashEntry<T>::LevelHashEntry(BitString iKey, T iVal, uint8_t* iStoragePtr) 
 }
 template <class T>
 LevelHashEntry<T>::LevelHashEntry(){
-        this->mKey = BitString();
+        this->mKey = BitString("0");
         this->mStoragePtr = nullptr;
         this->mValue = 0; 
         // the hashToAdr map should have a reference from iKey to addr 
