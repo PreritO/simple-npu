@@ -210,15 +210,7 @@ void LevelHash<T>::level_expand()
     resize_state = 1;
     addr_capacity = 1L << (level_size + 1);
     std::vector<LevelHashBucket<T> > newBuckets;
-    for(int i =0; i<addr_capacity; i++){
-        LevelHashBucket<T> *newBucket = new LevelHashBucket<T>();
-        newBuckets.push_back(*newBucket);
-    }
-    //LevelHashBucket<T> newBuckets[] = new LevelHashBucket<T>[addr_capacity];
-    if (!newBuckets) {
-        printf("The expanding fails: 2\n");
-        exit(1);
-    }
+    newBuckets.resize(addr_capacity);
     uint64_t new_level_item_num = 0;
     int ASSOC_NUM = mRoot[0][0].getASSOC();
     uint64_t old_idx;
@@ -227,7 +219,7 @@ void LevelHash<T>::level_expand()
         for(i = 0; i < ASSOC_NUM; i ++){
             if (mRoot[1][old_idx].getToken(i) == 1)
             {
-                LevelHashEntry<T> entry = mRoot[1][old_idx];
+                LevelHashEntry<T> entry = mRoot[1][old_idx].getSlot(i);
                 uint64_t f_idx = F_IDX(F_HASH(entry.getKey()), addr_capacity);
                 uint64_t s_idx = S_IDX(S_HASH(entry.getKey()), addr_capacity);
                 uint8_t insertSuccess = 0;
@@ -264,10 +256,9 @@ void LevelHash<T>::level_expand()
     }
     level_size++;
     total_capacity = (1L << level_size) + (1L << (level_size-1));
-    delete mRoot[1];
+    //delete mRoot[1];
     mRoot[1] = mRoot[0];
     mRoot[0] = newBuckets;
-    newBuckets = NULL;
     level_item_num[1] = level_item_num[0];
     level_item_num[0] = new_level_item_num;
     level_expand_time++;

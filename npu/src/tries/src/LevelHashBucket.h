@@ -69,7 +69,7 @@ LevelHashBucket<T>::LevelHashBucket(const LevelHashBucket<T>& iCopy) {
     for(int i = 0; i < ASSOC_NUM; i++) {
         bucket->setToken(i, iCopy.getToken(i));
         bucket->setSlot(i, iCopy.getSlot(i));
-    } 
+    }
     //return
     //return bucket;
 }
@@ -96,7 +96,7 @@ template <class T>
 uint8_t LevelHashBucket<T>::getToken(int index) const {
     //removing the dummy read for now, wont affect stats
     //std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr);
-    return tokens[index];
+    return this->tokens[index];
 }
 //getter for the ASSOC_NUM
 template <class T>
@@ -108,7 +108,10 @@ template <class T>
 LevelHashEntry<T> LevelHashBucket<T>::getSlot(int index) const {
     //removing this for now since we only want one penalty that happens in slot access
     //std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
-    return slots[index];
+    // if (slots[index].getAddr() > 1000000) {
+    //     cout << "here" << endl;
+    // }
+    return this->slots[index];
 }
 /// ==========================
 //
@@ -125,7 +128,10 @@ template <class T>
 void LevelHashBucket<T>::setSlot(int index, LevelHashEntry<T> entry) {
     //dont care about penalty
     //tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+1);
-    slots[index] = entry;
+    if (entry.getAddr() > 1000000 && tokens[index] == 1) {
+        cout << "break" << endl;
+    }
+    this->slots[index] = entry;
 }
 // template <class T>
 // void* LevelHashBucket<T>::operator new(long unsigned size) throw(const char*) {
