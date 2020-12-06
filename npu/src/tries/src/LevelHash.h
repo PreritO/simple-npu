@@ -100,12 +100,14 @@ LevelHash<T>::LevelHash(uint64_t size, uint64_t len) {
 
 	generate_seeds();
 	//create top level 
-    std::vector<LevelHashBucket<T>> topLevel(addr_capacity);
-    std::vector<LevelHashBucket<T>> bottomLevel(addr_capacity/2);
-    mRoot.push_back(topLevel);
-    mRoot.push_back(bottomLevel);
-
-
+    //std::vector<LevelHashBucket<T>> topLevel(addr_capacity);
+    //std::vector<LevelHashBucket<T>> bottomLevel(addr_capacity/2);
+    //mRoot.push_back(&topLevel);
+    //mRoot.push_back(&bottomLevel);
+    mRoot.resize(2);
+    for(int i = 0; i < 2; i++) {
+        mRoot[i].resize(addr_capacity/(i + 1));
+    }
     // mRoot[0] = new LevelHashBucket<T>[addr_capacity];
 	// mRoot[1] = new LevelHashBucket<T>[addr_capacity/2];
 	//starts off empty
