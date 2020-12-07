@@ -45,6 +45,9 @@ class LevelHash {
         uint64_t getSeed2() const;
         uint64_t getSize() const;
         //LevelHashBucket<T>[] getMRoot(int level) const;
+        
+        bool hasResized() const;
+        void setResized();
 
     private:
         //two levels, second dim set at runtime
@@ -78,6 +81,7 @@ class LevelHash {
         uint64_t S_IDX(uint64_t hashKey, uint64_t capacity);
         //void* alignedmalloc(size_t size);
         void generate_seeds();
+        bool resized_started;
         //TODO SETTERS AND GETTERS FOR EVERYTHING (TO BE SAFE :D)
 };
 
@@ -116,6 +120,7 @@ LevelHash<T>::LevelHash(uint64_t size, uint64_t len) {
     level_item_num[1] = 0;
     level_expand_time = 0;
     resize_state = 0;
+    resized_started = true;
     // if (mRoot == NULL)
     // {
     // 	printf("The level hash table initialization fails:2\n");
@@ -254,6 +259,7 @@ void LevelHash<T>::level_expand()
             }
         }
     }
+    resized_started = true;
     level_size++;
     total_capacity = (1L << level_size) + (1L << (level_size-1));
     //delete mRoot[1];
@@ -264,6 +270,17 @@ void LevelHash<T>::level_expand()
     level_expand_time++;
     resize_state = 0;
 }
+
+template<class T>
+bool LevelHash<T>::hasResized() const {
+    return resized_started;
+}
+
+template<class T>
+void LevelHash<T>::setResized(){
+    resized_started = false;
+}
+
 /*
 Function: level_shrink()
 Shrink a level hash table in place;
@@ -369,6 +386,7 @@ First search the level with more items;
 //return NULL;
 //}
 /*
+
 Function: level_static_query() 
 Lookup a key-value item in level hash table via static search scheme;
 Always first search the top level and then search the bottom level;

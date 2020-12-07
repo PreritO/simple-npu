@@ -43,6 +43,8 @@
 
 #include "pfpsim/pfpsim.h"
 
+#include "tries/src/LevelHash.h"
+
 extern int import_primitives();
 
 struct Value {
@@ -89,6 +91,11 @@ class P4 : public bm::Switch {
 
     std::unique_ptr<bm::TernaryLookupStructure>
     create_for_ternary(size_t size, size_t nbytes_key) override;
+
+    public:
+      LevelHash<Value>* getLevelHash();
+    private:
+      LevelHash<Value>* levelHash;
   };
 
  private:
@@ -96,10 +103,12 @@ class P4 : public bm::Switch {
   //removing for now while testing if the factory works
   //static std::map<std::string, MemAwareExactMap> exact_map;
   static std::shared_ptr<MemAwareLookupStructureFactory> factory;
+  // LevelHash<Value>* levelHash;
 
  public:
   static P4 * get(std::string name);
-  static P4 * get_exact(std::string name);
+  static P4::MemAwareLookupStructureFactory getFactory(std::string name);
+  // void setLevelHash(LevelHash<Value>* levelHash);
 
  private:
   // This class should only be constructed through the

@@ -45,7 +45,7 @@ HAL::HAL(
   JobRequestCounter = 0;
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_PortServiceThread, this)));
-  ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMThread, this)));
+  // ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMThread, this)));
   ThreadHandles.push_back(sc_spawn(sc_bind(&HAL::HAL_FetchFromMCTToSRAMCompleteThread, this)));
 }
 
@@ -313,23 +313,29 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   //TODO INVOKE ACCEL HERE
   if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
-      npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)
+      npulog(debug, cout << "Sending HAL signal to accelerator here " << received_pd->id() << endl;)
       
-
-
-      auto asyncmessage = make_routing_packet
-         (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
-      asyncmessage->payload->id(received_pd->id()); // set the payload id to the same as the packet id for debugging
-      asyncmessage->payload->tlm_address = vaddr;
-      tlmvar_halfetchmutex.lock();
-      //tlmvar_halreqs_fetch_buffer.emplace(recv_p->id(), asyncmessage->payload);
-      tlmvar_halreqs_fetch_buffer.push(asyncmessage);
-      tlmvar_halfetchmutex.unlock();
-      fetch_.notify();
-      // now, PD should be updated to reflect a time stamp..
-      received_pd->set_packet_time_recirc_(sc_time_stamp().to_double());
-      cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
-      cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << " and setting time at: " << sc_time_stamp().to_double() << endl;
+      // if we do a lookup here for table size from cp agent, we're going to have to wait for a response
+      // making it no longer truly async, and so we're just going to get the table_size from accel - PO
+      auto accelMessage = make_routing_packet
+         (name + core_number, "accel", std::make_shared<IPC_MEM>());
+      accelMessage->payload->id(received_pd->id());
+      accelMessage->payload->rightKey = rightKey;
+      accelMessage->payload->RequestType = "ACCEL_ASYNC";
+      cluster_local_switch_wr_if->put(accelMessage);
+      // auto asyncmessage = make_routing_packet
+      //    (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
+      // asyncmessage->payload->id(received_pd->id()); // set the payload id to the same as the packet id for debugging
+      // asyncmessage->payload->tlm_address = vaddr;
+      // tlmvar_halfetchmutex.lock();
+      // //tlmvar_halreqs_fetch_buffer.emplace(recv_p->id(), asyncmessage->payload);
+      // tlmvar_halreqs_fetch_buffer.push(asyncmessage);
+      // tlmvar_halfetchmutex.unlock();
+      // fetch_.notify();
+      // // now, PD should be updated to reflect a time stamp..
+      // received_pd->set_packet_time_recirc_(sc_time_stamp().to_double());
+      // cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
+      // cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << " and setting time at: " << sc_time_stamp().to_double() << endl;
 
   } else if (key_read && recv_p->bytes_to_allocate != 0) {
     received_pd->set_packet_time_recirc_(0.0);
@@ -355,21 +361,21 @@ void HAL::tlmwrite(int VirtualAddress, int data, std::size_t size) {
   npu_error("HALT-WriteMEM HAL Not implemented CORE");
 }
 
-void HAL::HAL_FetchFromMCTToSRAMThread() {
-  while(1) {
-    wait(fetch_);
-    tlmvar_halfetchmutex.lock();
-    auto asynccopymessage = tlmvar_halreqs_fetch_buffer.front();
-    tlmvar_halreqs_fetch_buffer.pop();
-    tlmvar_halfetchmutex.unlock();
-    //npulog(cout << "fetch event occurred" << endl;)
-    //int asyncPktId = asynccopymessage->payload->id();
-    asynccopymessage->payload->RequestType = "COPY";
-    npulog(cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;)
-    cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;
-    cluster_local_switch_wr_if->put(asynccopymessage);
-  }
-}
+// void HAL::HAL_FetchFromMCTToSRAMThread() {
+//   while(1) {
+//     wait(fetch_);
+//     tlmvar_halfetchmutex.lock();
+//     auto asynccopymessage = tlmvar_halreqs_fetch_buffer.front();
+//     tlmvar_halreqs_fetch_buffer.pop();
+//     tlmvar_halfetchmutex.unlock();
+//     //npulog(cout << "fetch event occurred" << endl;)
+//     //int asyncPktId = asynccopymessage->payload->id();
+//     asynccopymessage->payload->RequestType = "COPY";
+//     npulog(cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;)
+//     cout << "Sending COPY Message to MCT FROM HAL" << ", TLM Address:" << asynccopymessage->payload->tlm_address << endl;
+//     cluster_local_switch_wr_if->put(asynccopymessage);
+//   }
+// }
 
 void HAL::HAL_FetchFromMCTToSRAMCompleteThread() {
   while(1) {

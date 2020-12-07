@@ -47,6 +47,7 @@
 #include <string>
 #include <map>
 #include "pfpsim/pfpsim.h"
+#include "../../tries/src/BitString.h"
 
 class IPC_MEM: public pfp::core::TrType {
  public:
@@ -109,5 +110,7 @@ class IPC_MEM: public pfp::core::TrType {
   std::string table_name;
   //! Allocation type as defined in from the config file
   std::string Allocation;
+
+  BitString rightKey;
 };
 #endif  // BEHAVIOURAL_COMMON_IPC_MEM_H_

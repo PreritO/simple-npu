@@ -94,6 +94,10 @@ namespace {  // anonymous
             //constructor with that as a parameter if needed
             MemAwareExactMap() : levelhash(0) {}
 
+            LevelHash<Value>* getLevelHash() {
+                return levelhash;
+            }
+
             //It does not appear as if I need to update this one at the moment, otherise it should be similar to entry_exists
             bool lookup(const bm::ByteContainer & key_data,
                     bm::internal_handle_t * handle) const override {
@@ -304,9 +308,11 @@ P4::MemAwareLookupStructureFactory::create_for_exact(size_t size,
         size_t nbytes_key) {
     std::cout << "Create Mem Aware Exact Match Structure!!" << std::endl;
     //Need to keep the reference for a moment since we want to store it in the static map
-    //MemAwareExactMap exact = new MemAwareExactMap();
+    MemAwareExactMap* exact = new MemAwareExactMap();
+    this->levelHash = exact->getLevelHash();
     //exact_map["npu"] = exact;
-    return std::unique_ptr<bm::ExactLookupStructure>{new MemAwareExactMap()};
+    //return std::unique_ptr<bm::ExactLookupStructure>{new MemAwareExactMap()};
+    return std::unique_ptr<bm::ExactLookupStructure>{exact};
 }
 
 std::unique_ptr<bm::LPMLookupStructure>
@@ -322,6 +328,14 @@ P4::MemAwareLookupStructureFactory::create_for_ternary(size_t size,
     assert(!"Not implemented");
     return nullptr;
 }
+LevelHash<Value>* 
+P4::MemAwareLookupStructureFactory::getLevelHash() {
+    return this->levelHash;
+}
+
+// void P4::setLevelHash(LevelHash<Value>* levelHash){
+//     this->levelHash = levelHash;
+// }
 
 P4* P4::get(string name) {
     if (instances.count(name)) {
@@ -333,4 +347,10 @@ P4* P4::get(string name) {
         // 64737
         return instances[name] = newp4;
     }
+}
+
+P4::MemAwareLookupStructureFactory P4::getFactory(string name) {
+    if (instances.count(name)) {
+        return *factory;
+    } 
 }

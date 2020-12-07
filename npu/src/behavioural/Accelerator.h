@@ -3,6 +3,10 @@
 #include <string>
 #include <vector>
 #include "../structural/AcceleratorSIM.h"
+#include "common/RoutingPacket.h"
+#include "common/routingdefs.h"
+#include "common/IPC_MEM.h"
+#include "common/MemoryUtility.h"
 
 class Accelerator: public AcceleratorSIM {  // NOLINT(whitespace/line_length)
  public:
@@ -19,6 +23,9 @@ class Accelerator: public AcceleratorSIM {  // NOLINT(whitespace/line_length)
   void Accelerator_PortServiceThread();
   void AcceleratorThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;
+  std::queue<std::shared_ptr<IPC_MEM>> job_buffer_;
+  sc_event newMessage;
+  //Function that we are using the hash the addresses
 };
 
 #endif  // BEHAVIOURAL_ACCELERATOR_H_

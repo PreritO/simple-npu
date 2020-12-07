@@ -35,6 +35,7 @@
 #include "common/RoutingPacket.h"
 #include "common/PacketDescriptor.h"
 #include "common/Packet.h"
+#include "common/IPC_MEM.h"
 
 ControlPlaneAgent::ControlPlaneAgent(sc_module_name nm,
                   pfp::core::PFPObject* parent,
@@ -44,7 +45,7 @@ ControlPlaneAgent::ControlPlaneAgent(sc_module_name nm,
     outlog(OUTPUTDIR+"ControlPlaneAgentTableAllocationTrace.csv"),
     in_transaction(false) {
     /*sc_spawn threads*/
-  sc_spawn(sc_bind(&ControlPlaneAgent::command_processing_thread, this));
+  threadHandles.push_back(sc_spawn(sc_bind(&ControlPlaneAgent::command_processing_thread, this)));
 }
 
 void ControlPlaneAgent::init() {
@@ -151,8 +152,14 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
           cmd->get_table_name(),  build_p4_keys(cmd),
           cmd->get_action().get_name(), build_p4_action_data(cmd),
           &handle);
+    // check if it's been resized here.
+    // if it has, we send a packet to the accel containing size + seeds
+    // afterwards, call this function to set to false: setResized()
+    
+    //auto tableSize = p4->getLevelHash("npu")->getSize();
+    auto levelHash = P4::getFactory("npu").getLevelHash();
+    cout << "lh size: " << levelHash->getSize() << endl;
     p4->lock.write_unlock();
-
     return cmd->success_result(handle);
   } else {
     // Record the info of the insert for when we complete this transaction

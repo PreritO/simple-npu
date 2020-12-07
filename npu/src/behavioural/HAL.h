@@ -89,7 +89,7 @@ class HAL: public HALSIM {
 
  private:
   void HAL_PortServiceThread();
-  void HAL_FetchFromMCTToSRAMThread();
+  //void HAL_FetchFromMCTToSRAMThread();
   void HAL_FetchFromMCTToSRAMCompleteThread();
 
   //! Event to monitor fetch status..

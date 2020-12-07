@@ -37,6 +37,7 @@
 #include "pfpsim/core/cp/Commands.h"
 #include "common/PacketDescriptor.h"
 #include "common/P4.h"
+#include "common/IPC_MEM.h"
 
 
 class ControlPlaneAgent:
@@ -76,6 +77,10 @@ class ControlPlaneAgent:
 
   sc_event command_processed;
   std::shared_ptr<pfp::cp::CommandResult> current_result;
+
+  void CPAgent_PortServiceThread();
+  std::vector<sc_process_handle> threadHandles;
+
  public:
   //! Replies from ControlPlane
   bool handlePacketFromControlPlane(PacketDescriptor & packet);
@@ -109,6 +114,7 @@ class ControlPlaneAgent:
   sc_mutex mtx_cp_requested_;
   //! Map that stores memory usage by table name
   std::map<std::string, uint64_t> table_mem_usage;
+  // added to keep track of table sizes - PO
   //! current table that the agent is processing
   std::string current_table_name;
   //! Mutex guard for acessing table name
