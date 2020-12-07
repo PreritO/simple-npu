@@ -120,8 +120,13 @@ LevelHashEntry<T>::~LevelHashEntry() {
 /// ==========================
 template <class T>
 BitString LevelHashEntry<T>::getKey() const {
+    //Return value of zero should return failure?
     std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 1);
     // let's first return mKey to verify correctness before actually getting from memory
+    // If the stuff we want is not present in SRAM we return a filler value
+    if (val == 0) {
+        return new BitString("0");
+    }
     return mKey;
     //return static_cast<unsigned int>(val);
 }

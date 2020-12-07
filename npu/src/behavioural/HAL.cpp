@@ -310,6 +310,7 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
     npu_error("MAP ERROR HAL"+core_number+
               " for id: "+std::to_string(recv_p->id()));
   }
+  //TODO INVOKE ACCEL HERE
   if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)
