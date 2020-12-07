@@ -125,7 +125,7 @@ BitString LevelHashEntry<T>::getKey() const {
     // let's first return mKey to verify correctness before actually getting from memory
     // If the stuff we want is not present in SRAM we return a filler value
     if (val == 0) {
-        return new BitString("0");
+        return BitString("1");
     }
     return mKey;
     //return static_cast<unsigned int>(val);

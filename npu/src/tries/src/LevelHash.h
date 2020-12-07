@@ -382,14 +382,14 @@ T LevelHash<T>::level_static_query(BitString key)
     uint64_t s_idx = S_IDX(s_hash, addr_capacity);
     uint64_t i, j;
     int ASSOC_NUM = mRoot[0][0].getASSOC();
-    BitString bad_val = new BitString("0");
+    BitString bad_val = BitString("1");
     for(i = 0; i < 2; i ++){
         for(j = 0; j < ASSOC_NUM; j ++){
             //This should be fixed, leaving prev version in case i fucked something up 
             //if (mRoot[i][f_idx].getToken(j) == 1&&strcmp((char*)mRoot[i][f_idx].getSlot(j).getKey(), (char*)key) == 0)
             BitString temp_key = mRoot[i][f_idx].getSlot(j).getKey();
             if (temp_key == bad_val) {
-                return NULL;
+                return 0;
             }
             if (mRoot[i][f_idx].getToken(j) == 1 && temp_key == key)
             {
@@ -401,7 +401,7 @@ T LevelHash<T>::level_static_query(BitString key)
             //if (mRoot[i][s_idx].getToken(j) == 1&&strcmp((char*)mRoot[i][s_idx].getSlot(j).getKey(), (char*)key) == 0)
             BitString temp_key = mRoot[i][s_idx].getSlot(j).getKey();
             if (temp_key == bad_val) {
-                return NULL;
+                return 0;
             }
             if (mRoot[i][s_idx].getToken(j) == 1&& temp_key == key)
             {
