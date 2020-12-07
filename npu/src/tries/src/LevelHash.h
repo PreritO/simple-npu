@@ -219,7 +219,7 @@ void LevelHash<T>::level_expand()
         for(i = 0; i < ASSOC_NUM; i ++){
             if (mRoot[1][old_idx].getToken(i) == 1)
             {
-                LevelHashEntry<T> entry = mRoot[1][old_idx].getSlot(i);
+                LevelHashEntry<T> entry = *mRoot[1][old_idx].getSlot(i);
                 uint64_t f_idx = F_IDX(F_HASH(entry.getKey()), addr_capacity);
                 uint64_t s_idx = S_IDX(S_HASH(entry.getKey()), addr_capacity);
                 uint8_t insertSuccess = 0;
@@ -230,7 +230,7 @@ void LevelHash<T>::level_expand()
                     if (newBuckets[f_idx].getToken(j) == 0)
                     {
                         LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(entry);
-                        newBuckets[f_idx].setSlot(j, *newEntry);
+                        newBuckets[f_idx].setSlot(j, newEntry);
                         newBuckets[f_idx].setToken(j,1);
                         insertSuccess = 1;
                         new_level_item_num ++;
@@ -239,7 +239,7 @@ void LevelHash<T>::level_expand()
                     if (newBuckets[s_idx].getToken(j) == 0)
                     {
                         LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(entry);
-                        newBuckets[s_idx].setSlot(j, *newEntry);
+                        newBuckets[s_idx].setSlot(j, newEntry);
                         newBuckets[s_idx].setToken(j,1);
                         insertSuccess = 1;
                         new_level_item_num ++;
@@ -387,25 +387,30 @@ T LevelHash<T>::level_static_query(BitString key)
         for(j = 0; j < ASSOC_NUM; j ++){
             //This should be fixed, leaving prev version in case i fucked something up 
             //if (mRoot[i][f_idx].getToken(j) == 1&&strcmp((char*)mRoot[i][f_idx].getSlot(j).getKey(), (char*)key) == 0)
-            BitString temp_key = mRoot[i][f_idx].getSlot(j).getKey();
-            if (temp_key == bad_val) {
-                return 0;
-            }
-            if (mRoot[i][f_idx].getToken(j) == 1 && temp_key == key)
-            {
-                return mRoot[i][f_idx].getSlot(j).getValue();
+            // checks if slot is not null first..
+            if (mRoot[i][f_idx].getSlot(j)) {
+                 BitString temp_key = mRoot[i][f_idx].getSlot(j)->getKey(key);
+                if (temp_key == bad_val) {
+                    return 0;
+                }
+                if (mRoot[i][f_idx].getToken(j) == 1 && temp_key == key)
+                {
+                    return mRoot[i][f_idx].getSlot(j)->getValue();
+                }
             }
         }
         for(j = 0; j < ASSOC_NUM; j ++){
             //This should be fixed, leaving prev version in case i fucked something up 
             //if (mRoot[i][s_idx].getToken(j) == 1&&strcmp((char*)mRoot[i][s_idx].getSlot(j).getKey(), (char*)key) == 0)
-            BitString temp_key = mRoot[i][s_idx].getSlot(j).getKey();
-            if (temp_key == bad_val) {
-                return 0;
-            }
-            if (mRoot[i][s_idx].getToken(j) == 1&& temp_key == key)
-            {
-                return mRoot[i][s_idx].getSlot(j).getValue();
+            if (mRoot[i][s_idx].getSlot(j)) {
+                BitString temp_key = mRoot[i][s_idx].getSlot(j)->getKey(key);
+                if (temp_key == bad_val) {
+                    return 0;
+                }
+                if (mRoot[i][s_idx].getToken(j) == 1&& temp_key == key)
+                {
+                    return mRoot[i][s_idx].getSlot(j)->getValue();
+                }   
             }
         }
         f_idx = F_IDX(f_hash, addr_capacity / 2);
@@ -470,16 +475,16 @@ uint8_t LevelHash<T>::level_update(BitString key, T new_value)
     uint64_t i, j;
     for(i = 0; i < 2; i ++){
         for(j = 0; j < ASSOC_NUM; j ++){
-            if (mRoot[i][f_idx].getToken(j) == 1 && mRoot[i][f_idx].getSlot(j).getKey() ==  key)
+            if (mRoot[i][f_idx].getToken(j) == 1 && mRoot[i][f_idx].getSlot(j)->getKey() ==  key)
             {
-                mRoot[i][f_idx].getSlot(j).setValue(new_value);
+                mRoot[i][f_idx].getSlot(j)->setValue(new_value);
                 return 0;
             }
         }
         for(j = 0; j < ASSOC_NUM; j ++){
-            if (mRoot[i][s_idx].getToken(j) == 1 && mRoot[i][s_idx].getSlot(j).getKey() ==  key)
+            if (mRoot[i][s_idx].getToken(j) == 1 && mRoot[i][s_idx].getSlot(j)->getKey() ==  key)
             {
-                mRoot[i][s_idx].getSlot(j).setValue(new_value);
+                mRoot[i][s_idx].getSlot(j)->setValue(new_value);
                 return 0;
             }
         }
@@ -515,7 +520,7 @@ uint8_t LevelHash<T>::level_insert(BitString key, T value, int value_size)
             if (mRoot[i][f_idx].getToken(j) == 0)
             {
                 LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(key, value, nullptr);
-                mRoot[i][f_idx].setSlot(j, *newEntry);
+                mRoot[i][f_idx].setSlot(j, newEntry);
                 //add the storage ptr creation when first inserting the value, other functions that do no insert will
                 mRoot[i][f_idx].setToken(j,1);
                 level_item_num[i]++;
@@ -524,7 +529,7 @@ uint8_t LevelHash<T>::level_insert(BitString key, T value, int value_size)
             if (mRoot[i][s_idx].getToken(j) == 0) 
             {
                 LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(key, value, nullptr);
-                mRoot[i][s_idx].setSlot(j, *newEntry);
+                mRoot[i][s_idx].setSlot(j, newEntry);
                 //add the storage ptr creation when first inserting the value, other functions that do no insert will
                 mRoot[i][s_idx].setToken(j,1);
                 level_item_num[i]++;
@@ -552,7 +557,7 @@ uint8_t LevelHash<T>::level_insert(BitString key, T value, int value_size)
         empty_location = b2t_movement(f_idx);
         if(empty_location != -1){
             LevelHashEntry<T>* entry = new LevelHashEntry<T>(key, value, NULL);
-            mRoot[1][f_idx].setSlot(empty_location, *entry);
+            mRoot[1][f_idx].setSlot(empty_location, entry);
             mRoot[1][f_idx].setToken(empty_location,1);
             level_item_num[1] ++;
             return 0;
@@ -560,7 +565,7 @@ uint8_t LevelHash<T>::level_insert(BitString key, T value, int value_size)
         empty_location = b2t_movement(s_idx);
         if(empty_location != -1){
             LevelHashEntry<T>* entry = new LevelHashEntry<T>(key, value, NULL);
-            mRoot[1][s_idx].setSlot(empty_location,*entry);
+            mRoot[1][s_idx].setSlot(empty_location,entry);
             mRoot[1][s_idx].setToken(empty_location,1);
             level_item_num[1] ++;
             return 0;
@@ -582,7 +587,7 @@ uint8_t LevelHash<T>::try_movement(uint64_t idx, uint64_t level_num, BitString k
         //uint8_t *m_key = mRoot[level_num][idx].slot[i].key;
         //uint8_t *m_value = mRoot[level_num][idx].slot[i].value;
         //uint8_t *m_storage_ptr = mRoot[level_num][idx].slot[i].storage_ptr;
-        LevelHashEntry<T> m_entry = mRoot[level_num][idx].getSlot(i);
+        LevelHashEntry<T> m_entry = *mRoot[level_num][idx].getSlot(i);
         uint64_t f_hash = F_HASH(m_entry.getKey());
         uint64_t s_hash = S_HASH(m_entry.getKey());
         uint64_t f_idx = F_IDX(f_hash, addr_capacity/(1+level_num));
@@ -595,12 +600,12 @@ uint8_t LevelHash<T>::try_movement(uint64_t idx, uint64_t level_num, BitString k
             if (mRoot[level_num][jdx].getToken(j) == 0)
             {
                 LevelHashEntry<T>* entry = new LevelHashEntry<T>(m_entry);
-                mRoot[level_num][jdx].setSlot(j, *entry);
+                mRoot[level_num][jdx].setSlot(j, entry);
                 mRoot[level_num][jdx].setToken(j,1);
                 mRoot[level_num][idx].setToken(i,0);
                 // The movement is finished and then the new item is inserted
                 LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(key, value, storage_ptr);
-                mRoot[level_num][idx].setSlot(i, *newEntry);
+                mRoot[level_num][idx].setSlot(i, newEntry);
                 mRoot[level_num][idx].setToken(i,1);
                 level_item_num[level_num]++;
                 return 0;
@@ -622,7 +627,7 @@ int LevelHash<T>::b2t_movement(uint64_t idx)
     uint64_t i, j;
     int ASSOC_NUM = mRoot[0][0].getASSOC();
     for(i = 0; i < ASSOC_NUM; i ++){
-        LevelHashEntry<T> entry = mRoot[1][idx].getSlot(i);
+        LevelHashEntry<T> entry = *mRoot[1][idx].getSlot(i);
         f_hash = F_HASH(entry.getKey());
         s_hash = S_HASH(entry.getKey());  
         f_idx = F_IDX(f_hash, addr_capacity);
@@ -630,7 +635,7 @@ int LevelHash<T>::b2t_movement(uint64_t idx)
         for(j = 0; j < ASSOC_NUM; j ++){
             if (mRoot[0][f_idx].getToken(j) == 0) {
                 LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(entry);
-                mRoot[0][f_idx].setSlot(j, *newEntry);
+                mRoot[0][f_idx].setSlot(j, newEntry);
                 mRoot[0][f_idx].setToken(j,1);
                 mRoot[1][idx].setToken(i,0);
                 level_item_num[0]++;
@@ -640,7 +645,7 @@ int LevelHash<T>::b2t_movement(uint64_t idx)
             else if (mRoot[0][s_idx].getToken(j) == 0)
             {
                 LevelHashEntry<T>* newEntry = new LevelHashEntry<T>(entry);
-                mRoot[0][s_idx].setSlot(j, *newEntry);
+                mRoot[0][s_idx].setSlot(j, newEntry);
                 mRoot[0][s_idx].setToken(j,1);
                 mRoot[1][idx].setToken(i,0);
                 level_item_num[0]++;

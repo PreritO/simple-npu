@@ -37,6 +37,7 @@ using tlm::tlm_tag;
 #include "common/Packet.h"
 #include "common/PacketDescriptor.h"
 #include "common/IPC_MEM.h"
+#include "../tries/src/BitString.h"
 
 class HalS : public sc_interface {
  public:
@@ -89,6 +90,6 @@ class HalS : public sc_interface {
    * @return                value @ addr
    */
   virtual TlmType tlmread(int VirtualAddress, int data, std::size_t size, 
-      bool key_read, std::size_t val_compare = 0) = 0;
+      bool key_read, std::size_t val_compare = 0, BitString rightKey = BitString("0")) = 0;
 };
 #endif  // BEHAVIOURAL_HALS_H_

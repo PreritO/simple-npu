@@ -265,7 +265,7 @@ bool HAL::SendtoODE(std::size_t thread_id,
  */
 // made it so this function JUST reads the keys, nothing else.
 std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
-      std::size_t size, bool key_read, std::size_t val_compare) {
+      std::size_t size, bool key_read, std::size_t val_compare, BitString rightKey) {
   // PO - this is to keep track of the packet descriptor that we're dealing with
   if (!key_read) {
     return 0;
@@ -314,6 +314,9 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   if (key_read && recv_p->bytes_to_allocate == 0) {
       // This means that we're doing a key lookup and the key was not in SRAM, so send a request to off-chip to write this to sram
       npulog(debug, cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << endl;)
+      
+
+
       auto asyncmessage = make_routing_packet
          (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
       asyncmessage->payload->id(received_pd->id()); // set the payload id to the same as the packet id for debugging

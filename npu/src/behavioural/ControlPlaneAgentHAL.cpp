@@ -34,6 +34,8 @@
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
 #include "common/IPC_MEM.h"
+#include "../tries/src/BitString.h"
+
 ControlPlaneAgentHAL::ControlPlaneAgentHAL(
   sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):
             ControlPlaneAgentHALSIM(nm, parent, configfile),

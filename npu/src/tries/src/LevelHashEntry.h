@@ -17,7 +17,7 @@ class LevelHashEntry {
         // Destructor
         ~LevelHashEntry();
         // Getters
-        BitString getKey() const;
+        BitString getKey(BitString rightKey = BitString("0")) const;
         T getValue() const;
         uint8_t* getStoragePtr() const;
         int getAddr() const;
@@ -119,9 +119,9 @@ LevelHashEntry<T>::~LevelHashEntry() {
 //
 /// ==========================
 template <class T>
-BitString LevelHashEntry<T>::getKey() const {
+BitString LevelHashEntry<T>::getKey(BitString rightKey) const {
     //Return value of zero should return failure?
-    std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 1);
+    std::size_t val =   tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr, 1, 0, rightKey);
     // let's first return mKey to verify correctness before actually getting from memory
     // If the stuff we want is not present in SRAM we return a filler value
     if (val == 0) {

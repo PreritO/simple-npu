@@ -20,10 +20,10 @@ class LevelHashBucket {
         //GETTERS
         int getASSOC() const;
         uint8_t getToken(int index) const;
-        LevelHashEntry<T> getSlot(int index) const;
+        LevelHashEntry<T>* getSlot(int index) const;
         //SETTERS
         void setToken(int index, uint8_t value);
-        void setSlot(int index, LevelHashEntry<T> entry);
+        void setSlot(int index, LevelHashEntry<T> *entry);
         // Destructor
         ~LevelHashBucket();
 
@@ -32,7 +32,7 @@ class LevelHashBucket {
         int ASSOC_NUM;
         //std::vector<LevelHashEntry<T>> slots;
         //std::vector<uint8_t> tokens;
-        LevelHashEntry<T> slots[2];
+        LevelHashEntry<T>* slots[2];
         uint8_t tokens[2];
 };
 
@@ -52,6 +52,10 @@ class LevelHashBucket {
 template <class T>
 LevelHashBucket<T>::LevelHashBucket() {
     ASSOC_NUM = 2;
+    for(int i = 0; i < ASSOC_NUM; i++) {
+        slots[i] = nullptr;
+        tokens[i] = 0;
+    }
     //slots.resize(ASSOC_NUM);
     //tokens.resize(ASSOC_NUM);
 }
@@ -105,13 +109,13 @@ int LevelHashBucket<T>::getASSOC() const {
 }
 //getter for level hashbucket, takes slot number
 template <class T>
-LevelHashEntry<T> LevelHashBucket<T>::getSlot(int index) const {
+LevelHashEntry<T>* LevelHashBucket<T>::getSlot(int index) const {
     //removing this for now since we only want one penalty that happens in slot access
     //std::size_t val = tlmsingelton::getInstance().tlmvarptr->read_mem(this->tlm_addr+1);
     // if (slots[index].getAddr() > 1000000) {
     //     cout << "here" << endl;
     // }
-    return this->slots[index];
+    return slots[index];
 }
 /// ==========================
 //
@@ -125,13 +129,13 @@ void LevelHashBucket<T>::setToken(int index, uint8_t value) {
     //tlmsingelton::getInstance().tlmvarptr->allocate(static_cast<std::size_t>(iKey),this->tlm_addr);
 }
 template <class T>
-void LevelHashBucket<T>::setSlot(int index, LevelHashEntry<T> entry) {
+void LevelHashBucket<T>::setSlot(int index, LevelHashEntry<T>* entry) {
     //dont care about penalty
     //tlmsingelton::getInstance().tlmvarptr->allocate(0,this->tlm_addr+1);
-    if (entry.getAddr() > 1000000 && tokens[index] == 1) {
-        cout << "break" << endl;
-    }
-    this->slots[index] = entry;
+    // if (entry.getAddr() > 1000000 && tokens[index] == 1) {
+    //     cout << "break" << endl;
+    // }
+    slots[index] = entry;
 }
 // template <class T>
 // void* LevelHashBucket<T>::operator new(long unsigned size) throw(const char*) {

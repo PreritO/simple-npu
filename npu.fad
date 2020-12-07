@@ -69,6 +69,11 @@ PE Scheduler("SchedularConfig.cfg") {
   QueueWrI ocn_wr_if;
 };
 
+PE Accelerator {
+  QueueRdI ocn_rd_if;
+  QueueWrI ocn_wr_if;
+};
+
 PE ControlPlane {
   ControlPlaneAgentS cpa;
 };
@@ -188,6 +193,7 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   TrafficManager tm("TrafficManager.cfg");
   Deparser deparser;
   ControlPlaneAgent cpagent;
+  Accelerator accel;
   Mem mct_0_mem("OffChipConfig.cfg");
   Mem edram_payload_mem("MemoryConfig.cfg");
   MemoryManager memory_manager;
@@ -249,15 +255,18 @@ PE NPU("NPUConfig.cfg") implements ControlPlaneAgentS {
   bind splitter.ocn_rd_if           {ocn01_wr_channel[1]};
 
   // --- ocn_11 ---
-  Queue ocn11_rd_channel[3];
-  Queue ocn11_wr_channel[3];
+  Queue ocn11_rd_channel[4];
+  Queue ocn11_wr_channel[4];
 
-  //ocn_11                          //"ocn_01", "ocn_10", "scheduler", "ocn_21", "ocn_12"
-  bind ocn_11.ocn_rd_if             {ocn01_wr_channel[2],ocn10_wr_channel[3],ocn11_rd_channel[0],ocn11_rd_channel[1],ocn11_rd_channel[2]};
-  bind ocn_11.ocn_wr_if             {ocn01_rd_channel[2],ocn10_rd_channel[3],ocn11_wr_channel[0],ocn11_wr_channel[1],ocn11_wr_channel[2]};
+  //ocn_11                          //"ocn_01", "ocn_10", "scheduler", "ocn_21", "ocn_12", "accel"
+  bind ocn_11.ocn_rd_if             {ocn01_wr_channel[2],ocn10_wr_channel[3],ocn11_rd_channel[0],ocn11_rd_channel[1],ocn11_rd_channel[2], ocn11_rd_channel[3]};
+  bind ocn_11.ocn_wr_if             {ocn01_rd_channel[2],ocn10_rd_channel[3],ocn11_wr_channel[0],ocn11_wr_channel[1],ocn11_wr_channel[2], ocn11_wr_channel[3]};
 
   bind scheduler.ocn_wr_if          {ocn11_rd_channel[0]};
   bind scheduler.ocn_rd_if          {ocn11_wr_channel[0]};
+
+  bind accel.ocn_wr_if              {ocn11_rd_channel[3]};
+  bind accel.ocn_rd_if              {ocn11_wr_channel[3]};
 
   // --- ocn_21 ---
   Queue ocn21_rd_channel[2];

@@ -39,6 +39,7 @@
 #define BEHAVIOURAL_COMMON_TLMVAR_H_
 
 #include <string>
+#include "../../tries/src/BitString.h"
 
 class tlmvar {
  public:
@@ -48,7 +49,7 @@ class tlmvar {
   // TLM Memory related functions refactor for new tries
   std::size_t allocate_mem(int size_of_data);  // get address
   void allocate(std::size_t data_to_allocate, int addr, bool key_insert);  // write function
-  std::size_t read_mem(int addr, bool key_read, std::size_t val_compare = 0);  // read function
+  std::size_t read_mem(int addr, bool key_read, std::size_t val_compare = 0, BitString rightKey = BitString("0"));  // read function
 
   // Wrapper for allocate to not break legacy
   void write_mem(std::size_t data_to_allocate, int addr, bool key_insert);
