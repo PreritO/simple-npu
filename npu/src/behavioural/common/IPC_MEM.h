@@ -112,5 +112,11 @@ class IPC_MEM: public pfp::core::TrType {
   std::string Allocation;
 
   BitString rightKey;
+  uint64_t seed1;
+  uint64_t seed2;
+  uint64_t table_size;
+
+  uint64_t addr[4];
+
 };
 #endif  // BEHAVIOURAL_COMMON_IPC_MEM_H_

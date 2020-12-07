@@ -152,13 +152,23 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
           cmd->get_table_name(),  build_p4_keys(cmd),
           cmd->get_action().get_name(), build_p4_action_data(cmd),
           &handle);
-    // check if it's been resized here.
     // if it has, we send a packet to the accel containing size + seeds
+    // check if it's been resized here.
     // afterwards, call this function to set to false: setResized()
     
     //auto tableSize = p4->getLevelHash("npu")->getSize();
     auto levelHash = P4::getFactory("npu").getLevelHash();
-    cout << "lh size: " << levelHash->getSize() << endl;
+    if (levelHash->hasResized()) {
+      auto accelMessage = make_routing_packet
+          (module_name_, "accel", std::make_shared<IPC_MEM>());
+      accelMessage->payload->RequestType = "TABLE_UPDATE";
+      accelMessage->payload->table_size = levelHash->getSize();
+      accelMessage->payload->seed1 = levelHash->getSeed1();
+      accelMessage->payload->seed2 = levelHash->getSeed2();
+      ocn_wr_if->put(accelMessage);
+      levelHash->setResized();
+    }
+
     p4->lock.write_unlock();
     return cmd->success_result(handle);
   } else {

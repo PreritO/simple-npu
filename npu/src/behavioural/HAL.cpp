@@ -69,7 +69,18 @@ void HAL::HAL_PortServiceThread() {
         tlmvar_mem_response_buffer.push(ipcpkt->payload);
         tlmvar_memResponseMutex.unlock();
         fetch_copy_response_.notify();
-      } else {
+      } else if(ipcpkt->payload->RequestType == "ACCEL_RESPONSE") {
+        //cout << "Got 4 addresses from accel!" << endl;
+        for (int i =0; i< 4; i++) {
+          auto asyncmessage = make_routing_packet
+            (name + core_number, "mct_0_mem", std::make_shared<IPC_MEM>());
+          asyncmessage->payload->id(ipcpkt->payload->id());
+          asyncmessage->payload->tlm_address = ipcpkt->payload->addr[i];
+          asyncmessage->payload->RequestType = "COPY";
+          cluster_local_switch_wr_if->put(asyncmessage);
+        }
+      } 
+      else {
         tlmvar_halmutex.lock();
         auto it = tlmvar_halreqs_buffer.find(ipcpkt->payload->id());
         if(it != tlmvar_halreqs_buffer.end()) {
@@ -333,8 +344,8 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
       // tlmvar_halfetchmutex.unlock();
       // fetch_.notify();
       // // now, PD should be updated to reflect a time stamp..
-      // received_pd->set_packet_time_recirc_(sc_time_stamp().to_double());
-      // cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
+     received_pd->set_packet_time_recirc_(sc_time_stamp().to_double());
+     cout << "pkt id: " << received_pd->id() << " sram miss" << endl;
       // cout << "Sending HAL signal to do async fetch for pkt " << received_pd->id() << " and setting time at: " << sc_time_stamp().to_double() << endl;
 
   } else if (key_read && recv_p->bytes_to_allocate != 0) {

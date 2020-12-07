@@ -92,7 +92,9 @@ namespace {  // anonymous
             //Constructor should init the level hash table
             //Change the hist_length here, should not be something we really change much, but can just add another 
             //constructor with that as a parameter if needed
-            MemAwareExactMap() : levelhash(0) {}
+            MemAwareExactMap(){
+                levelhash = new LevelHash<Value>(10, 10);
+            }
 
             LevelHash<Value>* getLevelHash() {
                 return levelhash;
@@ -161,7 +163,7 @@ namespace {  // anonymous
                        val = levelhash->level_insert(byte_container_2_bitstring(key.data), Value(handle), sizeof(bm::internal_handle_t));
                    }
                } else {
-                   levelhash = new LevelHash<Value>(10, 10);
+                //    levelhash = new LevelHash<Value>(10, 10);
                    cout << "after level has init" << endl;
                    int val  = levelhash->level_insert(byte_container_2_bitstring(key.data), Value(handle), sizeof(bm::internal_handle_t));
                     while(val) {

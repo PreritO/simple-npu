@@ -21,11 +21,20 @@ class Accelerator: public AcceleratorSIM {  // NOLINT(whitespace/line_length)
 
  private:
   void Accelerator_PortServiceThread();
-  void AcceleratorThread(std::size_t thread_id);
+  void AcceleratorThread();
+  void halAcceleratorThread();
+
   std::vector<sc_process_handle> ThreadHandles;
-  std::queue<std::shared_ptr<IPC_MEM>> job_buffer_;
-  sc_event newMessage;
+  std::queue<std::shared_ptr<IPC_MEM>> cpagent_buffer_;
+  std::queue<std::shared_ptr<RoutingPacket<IPC_MEM>>> hal_buffer_;
+  sc_mutex cpagent_buffer_mtx, hal_buffer_mtx;
+
+  sc_event cpAgentMessage, halMessage;
   //Function that we are using the hash the addresses
+
+  uint64_t seed1;
+  uint64_t seed2;
+  uint64_t table_size;
 };
 
 #endif  // BEHAVIOURAL_ACCELERATOR_H_
