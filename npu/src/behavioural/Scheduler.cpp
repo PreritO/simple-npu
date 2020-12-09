@@ -38,7 +38,7 @@
 #include "common/routingdefs.h"
 #include "common/RPCPacket.h"
 
-Scheduler::Scheduler(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SchedulerSIM(nm, parent, configfile) {  // NOLINT(whitespace/line_length)
+Scheduler::Scheduler(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile):SchedulerSIM(nm, parent, configfile),outlog(OUTPUTDIR+"SchedulerTrace.csv")  {  // NOLINT(whitespace/line_length)
   /*sc_spawn threads*/
   ThreadHandles.push_back(
     sc_spawn(
@@ -59,6 +59,7 @@ void Scheduler::Scheduler_PortServiceThread() {
             = try_unbox_routing_packet<PacketDescriptor>(received_tr)) {
       //cout << "scheduler processing pkt: "<< received_pd->id()<<endl;
       JobsReceived.push(received_pd->payload);
+      outlog<<received_pd->id()<<",Ingress, "<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
       GotaJob.notify();
     } else if (auto request
                 = try_unbox_routing_packet
@@ -85,6 +86,7 @@ void Scheduler::SchedulerThread(std::size_t thread_id) {
         auto Job = JobsReceived.front();
         JobsReceived.pop();
         // Send the PD to the Requester.
+        outlog<<Job->id()<<",Egress, "<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
         ocn_wr_if->put(make_routing_packet<PacketDescriptor>(
           module_name(),
           Request->GetMessage().SendJobto,

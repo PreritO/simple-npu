@@ -39,6 +39,7 @@ if __name__=="__main__":
 
     IngressTrace = list(csv.reader(open("IngressTrace.csv"), delimiter=","))
     EgressTrace = list(csv.reader(open("EgressTrace.csv"), delimiter=","))
+    SchedulerTrace = list(csv.reader(open("scheduler_diff.txt"), delimiter=","))
     sortedEgressTrace = sorted(EgressTrace, key=lambda x: float(x[0]), reverse=False)
     # print "---- Egress Sort----"
     # for line in sortedEgressTrace:
@@ -52,9 +53,10 @@ if __name__=="__main__":
     count =0
     diffFile = "diff.txt"
     with open(diffFile,"a") as diffFileh :
-        for IngressVal,EgressVal in itertools.izip(IngressTrace,sortedEgressTrace):
+        for IngressVal,EgressVal,SchedulerVal in itertools.izip(IngressTrace,sortedEgressTrace, SchedulerTrace):
             #print IngressVal + EgressVal
-            diff = float(EgressVal[1])-float(IngressVal[1])
+            # also take into account the scheduler here..
+            diff = float(EgressVal[1])-float(IngressVal[1])-float(SchedulerVal[1])
             diffFileh.write(str(IngressVal[0]) + ": " + str(diff) + "\n")
             avgsum = avgsum + diff
             count = count + 1
@@ -65,7 +67,6 @@ if __name__=="__main__":
     # print EgressTrace
     sortedEgressTimeTrace = sorted(EgressTrace, key=lambda x: float(x[1]), reverse=False)
     avg_thrp =len(sortedEgressTimeTrace) / (float(sortedEgressTimeTrace[-1][1]) - float(sortedEgressTimeTrace[0][1]))
-
 
 
    # print "Latency "+str(avg_latency)
