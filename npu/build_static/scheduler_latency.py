@@ -64,5 +64,5 @@ if __name__=="__main__":
             if (first != -1 and last != -1):
                 #schedulFileh.write("pkt id: " + str(i) + ", Ingress: " + str(sortedSchedulerTrace[first][2]) + ", Egress " + str(sortedSchedulerTrace[last][2]) + "\n")
                 # just write the difference here...
-                diff = int(sortedSchedulerTrace[last][2])-int(sortedSchedulerTrace[first][2])
+                diff = float(sortedSchedulerTrace[last][2])-float(sortedSchedulerTrace[first][2])
                 schedulFileh.write(str(i) + "," + str(diff) + "\n")
