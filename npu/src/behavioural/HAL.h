@@ -129,11 +129,13 @@ class HAL: public HALSIM {
   const char* name;              /*!< Parent name */
   //! Map that stores memory messages received by HAL
   std::map<std::size_t, std::shared_ptr<IPC_MEM>> tlmvar_halreqs_buffer;
+  std::map<std::size_t, std::shared_ptr<IPC_MEM>> accel_response_buffer;
+
   std::map<std::size_t, std::size_t> tlmvar_halreqs;
   //! Event to notify that something received in tlmvarrequests buffers
-  sc_event tlmvar_halevent;
+  sc_event tlmvar_halevent, accelResponse_halevent;
   //! Mutex to access tlmvar requests buffer
-  sc_mutex tlmvar_halmutex;
+  sc_mutex tlmvar_halmutex, accel_halmutex;
   sc_mutex tlmvar_memResponseMutex;
   //! HAL TLM utils Decode counter for requests sent.
   int tlmreqcounter;

@@ -79,6 +79,16 @@ void HAL::HAL_PortServiceThread() {
           asyncmessage->payload->RequestType = "COPY";
           cluster_local_switch_wr_if->put(asyncmessage);
         }
+      } else if(ipcpkt->payload->RequestType == "TABLE_READ_RESPONSE") {
+        accel_halmutex.lock();
+        auto it = accel_response_buffer.find(ipcpkt->payload->id());
+        if(it != accel_response_buffer.end()) {
+          it->second = ipcpkt->payload;
+        } else {
+          accel_response_buffer.emplace(ipcpkt->payload->id(), ipcpkt->payload);
+        }
+        accel_halmutex.unlock();
+        accelResponse_halevent.notify();
       } 
       else {
         tlmvar_halmutex.lock();
@@ -290,20 +300,46 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   if (received_pd->id() == 2) {
     cout << "break" << endl;
   }
-  // 1. Virtual Address
-  TlmType vaddr = VirtualAddress;
+  // 1. Virtual Address - means nothing to us, PO
+  //TlmType vaddr = VirtualAddress;
   // 2. Get Physical Address from the Virtual Address Space
-  memdecode result = meminfo.decodevirtual(vaddr);
+  // memdecode result = meminfo.decodevirtual(vaddr); again, means nothing to us - PO
   // 3.2 Prepare Packet to send to MEM
-  // 3.2.1 set the destination memory
+  // 3.2.1 set the destination memory, i.e. check if addr is in SRAM
   auto memmessage = make_routing_packet
           (name + core_number, "edram_0_mem", std::make_shared<IPC_MEM>());
   // 3.2.2 Set Packet ID
   memmessage->payload->id(received_pd->id());
   int pktid = memmessage->payload->id();
   memmessage->payload->RequestType = "READ";
-  memmessage->payload->tlm_address = vaddr;
+  // let's get the seeds + table_size from Accel here (synchronous rn)
+  auto accelSeedMessage = make_routing_packet
+          (name + core_number, "accel", std::make_shared<IPC_MEM>());
+  accelSeedMessage->payload->id(received_pd->id());
+  int pktIdSeedRequest = accelSeedMessage->payload->id();
+  accelSeedMessage->payload->RequestType = "TABLE_READ";
+  cluster_local_switch_wr_if->put(accelSeedMessage);
+  wait(accelResponse_halevent);
+  bool foundInMapAccel = false;
+  while (foundInMapAccel == false){
+    if(accel_response_buffer.find(pktIdSeedRequest) == accel_response_buffer.end()) {
+      wait(accelResponse_halevent);
+    } else {
+      foundInMapAccel = true;
+    }
+  }
+  // This means that we've gotten the response from accel for seeds + table_size
+  accel_halmutex.lock();
+  auto recv_p_seeds = accel_response_buffer.at(pktIdSeedRequest);
+  accel_halmutex.unlock();
+  memmessage->payload->rightKey = rightKey;
+  memmessage->payload->seed1 = recv_p_seeds->seed1;
+  memmessage->payload->seed2 = recv_p_seeds->seed2;
+  memmessage->payload->table_size = recv_p_seeds->table_size;
+  //memmessage->payload->tlm_address = vaddr;
+  // Finally, send to the SRAM request here..
   cluster_local_switch_wr_if->put(memmessage);
+  // wait for a resposne from the sram here...
   wait(tlmvar_halevent);
   bool foundinmap = false;
   while (foundinmap == false) {
@@ -316,7 +352,9 @@ std::size_t HAL::tlmread(TlmType VirtualAddress, TlmType data,
   tlmvar_halmutex.lock();
   auto recv_p = tlmvar_halreqs_buffer.at(pktid);
   tlmvar_halmutex.unlock();
-
+  // means that we're received a response from SRAM 
+  // this entire process is blocking (sync) - PO
+  
   if (recv_p->id() != pktid) {
     npu_error("MAP ERROR HAL"+core_number+
               " for id: "+std::to_string(recv_p->id()));

@@ -39,6 +39,14 @@ void Accelerator::Accelerator_PortServiceThread() {
             hal_buffer_.push(received_rp);
             hal_buffer_mtx.unlock();
             halMessage.notify();
+        } else if(ipcpkt->RequestType == "TABLE_READ") {
+          received_rp->payload->seed1 = seed1;
+          received_rp->payload->seed2 = seed1;
+          received_rp->payload->table_size = table_size;
+          received_rp->payload->RequestType = "TABLE_READ_RESPONSE";
+          received_rp->destination = received_rp->source;
+          received_rp->source = module_name_;
+          ocn_wr_if->put(received_rp);
         }
       }
   }

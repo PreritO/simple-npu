@@ -2,6 +2,9 @@
 #include <string>
 #include "common/RoutingPacket.h"
 #include "common/routingdefs.h"
+extern "C" {
+  #include "hash.h"
+}
 #define debug_tlm_sram_transaction 0
  
 SRAMController::SRAMController(sc_module_name nm, pfp::core::PFPObject* parent, std::string configfile)
@@ -80,8 +83,36 @@ void SRAMController::SRAMControllerThread(std::size_t thread_id) {
       // } else 
       if (ipcpkt->RequestType.find("READ") != std::string::npos) {
         // Perform Read operation
-        npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
-        ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        //npulog(cout << "SRAM READ OPERATION:  " << ipcpkt->tlm_address<< ", from: "<< ipcpkt_SentFrom << endl;)
+        // we no longer want to just read from ipcpkt->tlm_address, instead we want to 
+        // regenerate the hash addresses to read from (same as accel) - PO
+
+        //ipcpkt->bytes_to_allocate = tlm_read(ipcpkt->tlm_address);
+        
+        std::vector<bool> vec = ipcpkt->rightKey.getVector();
+        uint64_t seed1 = ipcpkt->seed1;
+        uint64_t seed2 = ipcpkt->seed2;
+        uint64_t table_size = ipcpkt->table_size;
+
+        uint64_t hash1 = customHash((void *)(&vec), vec.size(), seed1);
+        uint64_t hash2 = customHash((void *)(&vec), vec.size(), seed2);
+        uint64_t addr1 = hash1%(table_size/2);
+        uint64_t addr2 = hash2%(table_size/2)+(table_size/2);
+        uint64_t addr3 = hash1%(table_size/4);
+        uint64_t addr4 = hash2%(table_size/4)+(table_size/4);
+
+        ipcpkt->bytes_to_allocate = tlm_read(addr1);
+        if(ipcpkt->bytes_to_allocate == 0) {
+          ipcpkt->bytes_to_allocate = tlm_read(addr2);
+        }
+        if(ipcpkt->bytes_to_allocate == 0) {
+          ipcpkt->bytes_to_allocate = tlm_read(addr3);
+        }
+        if(ipcpkt->bytes_to_allocate == 0) {
+          ipcpkt->bytes_to_allocate = tlm_read(addr4);
+        }
+
+        // This was meant for just debugging - PO
         if (ipcpkt->bytes_to_allocate != 0) {
           ipcpkt->RequestType = "UPDATE";
         }
