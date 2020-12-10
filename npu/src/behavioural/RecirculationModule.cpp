@@ -40,11 +40,11 @@ void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
       // Treat in a FIFO fashion
       auto pd = JobsReceived.front();
       sc_time currentTime = sc_time_stamp();
-      int imagDur = 100; // make this a runtime variable from a configuration file
-      sc_time scImageDur = sc_time(imagDur, SC_NS) + currentTime; //< calculate the end time.
+      int imagDur = 125; // eventually make this a runtime variable from a configuration file. make this 2000 for TEA
+      sc_time scImageDur =  currentTime + sc_time(imagDur, SC_NS); //< calculate the end time.
       // Prerit TODO: Update time difference to not be hardcorded, instead get this from a configuration file
       while((sc_time_stamp()) < scImageDur) {
-            wait(10, SC_NS); //< Move simulation time. (Very Important.)
+            wait(1, SC_NS); //< Move simulation time. (Very Important.)
         }
       jobsReceived_mtx.lock();
       JobsReceived.pop();

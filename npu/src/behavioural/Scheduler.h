@@ -55,6 +55,7 @@ class Scheduler: public SchedulerSIM {  // NOLINT(whitespace/line_length)
   void Scheduler_PortServiceThread();
   void SchedulerThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;
+  std::ofstream outlog;
 
   //! Internal buffer to store received Jobs from the global scheduler.
   std::queue<std::shared_ptr<PacketDescriptor>> JobsReceived;
