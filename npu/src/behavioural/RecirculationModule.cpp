@@ -44,7 +44,7 @@ void RecirculationModule::RecirculationModuleThread(std::size_t thread_id) {
       sc_time scImageDur =  currentTime + sc_time(imagDur, SC_NS); //< calculate the end time.
       // Prerit TODO: Update time difference to not be hardcorded, instead get this from a configuration file
       while((sc_time_stamp()) < scImageDur) {
-            wait(10, SC_NS); //< Move simulation time. (Very Important.)
+            wait(1, SC_NS); //< Move simulation time. (Very Important.)
         }
       jobsReceived_mtx.lock();
       JobsReceived.pop();
