@@ -178,7 +178,7 @@ action set_ecmp_select(ecmp_base, ecmp_count) {
 
 table ecmp_group {
     reads {
-        ipv4.dstAddr : exact;
+        ipv4.srcAddr : exact;
     }
     actions {
         _drop;
