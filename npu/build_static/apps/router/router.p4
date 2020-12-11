@@ -127,13 +127,13 @@ action set_nhop(nhop_ipv4, port) {
 
 table ipv4_lpm {
     reads {
-        ipv4.dstAddr : lpm;
+        ipv4.srcAddr : exact;
     }
     actions {
         set_nhop;
         _drop;
     }
-    size: 1024;
+    size: 16384;
 }
 
 action set_dmac(dmac) {
@@ -182,11 +182,11 @@ table tcp_rewrite_dst {
 }
 
 control ingress {
-    if(valid(ipv4) and ipv4.ttl > 0) {
+    //if(valid(ipv4) and ipv4.ttl > 0) {
         apply(ipv4_lpm);
         apply(forward);
         apply(tcp_rewrite_dst);
-    }
+    //}
 }
 
 control egress {

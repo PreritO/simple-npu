@@ -1,5 +1,4 @@
 rm *.csv
-rm diff.txt
 #
 # simple-npu: Example NPU simulation model using the PFPSim Framework
 #
@@ -47,10 +46,10 @@ debug="$3"
 if [[ $debug == "debug" ]] ; then
     if [[ $application == "nat" ]] ; then #NAT
         pfpdb npu-sim --args "-Xp4 apps/nat/nat.json -Xtpop apps/nat/nat_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
+    elif [[ $application == "ecmp" ]]; then
+        pfpdb npu-sim --args "-Xp4 apps/ecmp/ecmp.json -Xtpop apps/ecmp/ecmp_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     elif [[ $application == "router" ]]; then
-        pfpdb npu-sim --args "-Xp4 simple_router.json -Xtpop apps/router/router_table.txt -v "$vlvl" -Xin apps/pcaps/170pkts.pcap -Xvalidation-out output.pcap" -v
-        #pfpdb npu-sim --args "-Xp4 simple_router.json -Xtpop table.txt -v "$vlvl" -Xin apps/pcaps/1kflows.pcap -Xvalidation-out output.pcap" -v
-        #pfpdb npu-sim --args "-Xp4 simple_router.json -Xtpop table.txt -v "$vlvl" -Xin Configs/input.pcap -Xvalidation-out output.pcap" -v
+        pfpdb npu-sim --args "-Xp4 apps/router/router_new.json -Xtpop apps/router/router_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     else
         echo "not yet implemented.."
         exit
@@ -59,10 +58,10 @@ if [[ $debug == "debug" ]] ; then
 else
     if [[ $application == "nat" ]] ; then #NAT
         ./npu-sim -c Configs/ -Xp4 apps/nat/nat.json -Xtpop apps/nat/nat_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+    elif [[ $application == "ecmp" ]]; then
+        ./npu-sim -c Configs/ -Xp4 apps/ecmp/ecmp.json -Xtpop apps/ecmp/ecmp_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
     elif [[ $application == "router" ]]; then
-        #./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop table.txt -Xin Configs/input.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
-        #./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
-        ./npu-sim -c Configs/ -Xp4 simple_router.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/170pkts.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
+        ./npu-sim -c Configs/ -Xp4 apps/router/router_new.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
 
     else
         echo "not yet implemented.."

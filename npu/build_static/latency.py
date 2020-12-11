@@ -1,3 +1,34 @@
+#!/usr/bin/python
+#
+# simple-npu: Example NPU simulation model using the PFPSim Framework
+#
+# Copyright (C) 2016 Concordia Univ., Montreal
+#     Samar Abdi
+#     Umair Aftab
+#     Gordon Bailey
+#     Faras Dewal
+#     Shafigh Parsazad
+#     Eric Tremblay
+#
+# Copyright (C) 2016 Ericsson
+#     Bochra Boughzala
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+
 import sys
 import csv
 import operator
@@ -21,10 +52,10 @@ if __name__=="__main__":
     avgsum =0
     count =0
     diffFile = "diff.txt"
-    with open(diffFile,"a") as diffFileh :
+    with open(diffFile,"w") as diffFileh :
         for IngressVal,EgressVal,SchedulerVal in itertools.izip(IngressTrace,sortedEgressTrace, SchedulerTrace):
             #print IngressVal + EgressVal
-            # also take into account the scheduler here..
+            # also take into account the scheduler here - PO
             diff = float(EgressVal[1])-float(IngressVal[1])-float(SchedulerVal[1])
             diffFileh.write(str(IngressVal[0]) + ": " + str(diff) + "\n")
             avgsum = avgsum + diff
