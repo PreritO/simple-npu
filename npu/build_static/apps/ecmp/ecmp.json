@@ -423,11 +423,11 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "rewrite_mac",
+            "name": "set_dmac",
             "id": 0,
             "runtime_data": [
                 {
-                    "name": "smac",
+                    "name": "dmac",
                     "bitwidth": 48
                 }
             ],
@@ -439,7 +439,7 @@
                             "type": "field",
                             "value": [
                                 "ethernet",
-                                "srcAddr"
+                                "dstAddr"
                             ]
                         },
                         {
@@ -462,11 +462,11 @@
             ]
         },
         {
-            "name": "set_dmac",
+            "name": "rewrite_mac",
             "id": 2,
             "runtime_data": [
                 {
-                    "name": "dmac",
+                    "name": "smac",
                     "bitwidth": 48
                 }
             ],
@@ -478,7 +478,7 @@
                             "type": "field",
                             "value": [
                                 "ethernet",
-                                "dstAddr"
+                                "srcAddr"
                             ]
                         },
                         {
@@ -614,7 +614,7 @@
                             "match_type": "exact",
                             "target": [
                                 "ipv4",
-                                "dstAddr"
+                                "srcAddr"
                             ],
                             "mask": null
                         }

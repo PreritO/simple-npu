@@ -15,7 +15,7 @@ if __name__=="__main__":
 
         for i,j,k in itertools.product(range(0,16,2),range(0,32,2), range(0,32,2)):
             # if file has been successfully opened. 
-            text = "insert_entry ecmp_group " + "10.{0}.{1}.{2}".format(i,j,k) + " set_ecmp_select 0 2\n" 
+            text = "insert_entry ecmp_group " + "0.{0}.{1}.{2}".format(i,j,k) + " set_ecmp_select 0 2\n" 
             file_object.write(text) # write function to write text to file
 
         
