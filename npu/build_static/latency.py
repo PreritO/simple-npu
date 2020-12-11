@@ -52,7 +52,7 @@ if __name__=="__main__":
     avgsum =0
     count =0
     diffFile = "diff.txt"
-    with open(diffFile,"a") as diffFileh :
+    with open(diffFile,"w") as diffFileh :
         for IngressVal,EgressVal,SchedulerVal in itertools.izip(IngressTrace,sortedEgressTrace, SchedulerTrace):
             #print IngressVal + EgressVal
             # also take into account the scheduler here..

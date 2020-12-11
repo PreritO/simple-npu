@@ -151,7 +151,7 @@ action set_nhop(nhop_ipv4, port) {
 // table.
 
 #define ECMP_BIT_WIDTH 10
-#define ECMP_GROUP_TABLE_SIZE 1024
+#define ECMP_GROUP_TABLE_SIZE 16384
 #define ECMP_NHOP_TABLE_SIZE 16384
 
 field_list l3_hash_fields {
@@ -178,7 +178,7 @@ action set_ecmp_select(ecmp_base, ecmp_count) {
 
 table ecmp_group {
     reads {
-        ipv4.dstAddr : lpm;
+        ipv4.dstAddr : exact;
     }
     actions {
         _drop;
