@@ -635,7 +635,7 @@
                 {
                     "name": "firewall",
                     "id": 0,
-                    "match_type": "lpm",
+                    "match_type": "exact",
                     "type": "simple",
                     "max_size": 16384,
                     "with_counters": false,
@@ -643,7 +643,7 @@
                     "support_timeout": false,
                     "key": [
                         {
-                            "match_type": "lpm",
+                            "match_type": "exact",
                             "target": [
                                 "ipv4",
                                 "srcAddr"

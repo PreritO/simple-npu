@@ -50,6 +50,8 @@ if [[ $debug == "debug" ]] ; then
         pfpdb npu-sim --args "-Xp4 apps/ecmp/ecmp.json -Xtpop apps/ecmp/ecmp_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     elif [[ $application == "router" ]]; then
         pfpdb npu-sim --args "-Xp4 apps/router/router_new.json -Xtpop apps/router/router_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
+    elif [[ $application == "firewall" ]]; then
+        pfpdb npu-sim --args "-Xp4 apps/stateful-firewall/firewall.json -Xtpop apps/stateful-firewall/firewall_table.txt -v "$vlvl" -Xin apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     else
         echo "not yet implemented.."
         exit
@@ -62,7 +64,8 @@ else
         ./npu-sim -c Configs/ -Xp4 apps/ecmp/ecmp.json -Xtpop apps/ecmp/ecmp_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
     elif [[ $application == "router" ]]; then
         ./npu-sim -c Configs/ -Xp4 apps/router/router_new.json -Xtpop apps/router/router_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
-
+    elif [[ $application == "firewall" ]]; then
+        ./npu-sim -c Configs/ -Xp4 apps/stateful-firewall/firewall.json -Xtpop apps/stateful-firewall/firewall_table.txt -Xin apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl" | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g"
     else
         echo "not yet implemented.."
         exit
